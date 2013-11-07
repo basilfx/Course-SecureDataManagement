@@ -1,0 +1,50 @@
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		$("#visible_form").on("submit", function(e) {
+			e.preventDefault();
+			console.log("awd");
+
+			var amount  = $("#visible_form input[name=amount]").val();
+			var sender  = $("#visible_form input[name=sender]").val();
+			var receiver  = $("#visible_form input[name=receiver]").val();
+			var description  = $("#visible_form input[name=description]").val();
+			var miliseconds = new Date().valueOf();
+
+			var data  = { 
+				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
+				amount_bucket: hash(amount),
+				miliseconds_bucket: hash(miliseconds)
+			};
+			
+			//encrypt
+			$("#form_hidden input[name=data]").val(JSON.stringify(data));
+			$("#form_hidden").submit();
+		});
+
+		function encrypt(input){
+			return JSON.stringify(input);
+		}
+
+		function hash(input){
+			return input;
+		}
+
+	});
+</script>
+
+<h2>New Transaction</h2>
+<form id="visible_form" method="POST">
+{{form}}
+
+<input type="submit">
+
+</form>
+
+<form id="form_hidden" method="POST" style="display: none">
+{% csrf_token %}
+{{form_hidden}}
+
+</form>

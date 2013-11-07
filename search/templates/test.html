@@ -1,0 +1,62 @@
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+
+<script type="text/javascript">
+
+	var data1 = {{ data1|safe }};
+	var data2 = {{ data2|safe }};
+
+	$(document).ready(function() {
+
+		function addRow(id, sender) {
+			var container = $("#output tbody");
+
+			container.append("<tr><td>" + id + "</td><td>" + sender + "</td></tr>");
+		}
+
+		for (i in data2) {
+			var transaction = data2[i];
+
+			addRow(transaction.id, transaction.sender);
+		}
+
+		$("#add_row").on("click", function(e) {
+			addRow(1337, "meh!");
+		});
+
+		$("#form_visible").on("submit", function(e) {
+			e.preventDefault();
+
+			var id1  = $("#form_visible input[name=id]");
+			var id2  = $("#form_visible input[name=id]");
+			var id3  = $("#form_visible input[name=id]");
+			var data  = { 
+				all: encrypt(id1+id2+id3), 
+				id1_s: hash(id1),
+				id2_s: hash(id2),
+				id3_s: hash(id3)
+			}
+			
+			//encrypt
+			$("#form_hidden input[name=data]").val(JSON.stringify(data));
+			$("#form_hidden").submit();
+		});
+
+	});
+</script>
+
+<div id="output" style="display: none">
+	{{form_hidden}}
+	<table>
+		<thead>
+			<tr>
+				<td>id</td>
+				<td>sender</td>
+			</tr>
+		</thead>
+		<tbody>
+
+		</tbody>
+	</table>
+</div>
+
+<button id="add_row">add row</button>

@@ -1,0 +1,76 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.forms.models import model_to_dict
+from search.models import *
+from search.forms import *
+
+import json
+
+# Create your views here.
+def transaction_index(request):
+	data = []
+	for transaction in Transaction.objects.all():
+		data.append(model_to_dict(transaction, fields=["id", "data"]))
+	data = json.dumps(data, indent=4)
+	return render(request,"transaction_index.html",locals())
+
+def transaction_show(request, transaction_id):
+	transaction = get_object_or_404(Transaction,id=transaction_id)
+	return render(request,"transaction_show.html",locals())
+
+def transaction_new(request):
+	form = TransactionForm()
+	form_hidden = HiddenForm(data=request.POST or None)
+	if request.method == "POST" and form_hidden.is_valid():
+		data = form_hidden.cleaned_data["data"]
+		print data
+		data = json.loads(data)
+		print data
+
+		instance = Transaction(**data)
+		instance.save()		
+		return redirect('search.views.transaction_show', transaction_id=instance.id)
+
+	return render(request, "transaction_new.html", locals())
+
+def transaction_edit(request, transaction_id):
+	transaction = get_object_or_404(Transaction,id=transaction_id)
+	form = TransactionForm(instance=transaction,data=request.POST or None)
+	if request.method == "POST" and form.is_valid():
+		instance = form.save()
+		return redirect('search.views.transaction_show', transaction_id=instance.id)
+
+	return render(request, "transaction_edit.html", locals())
+
+def test(request):
+	data1 = {
+		"abc": [1, 2, 3],
+		"deeper": {
+			"nested": {
+				"is": "cool"
+			}
+		}
+	}
+
+	data2 = []
+
+	for transaction in Transaction.objects.all():
+		data2.append(model_to_dict(transaction, fields=["id", "sender", "receiver", "amount"]))
+
+	data1 = json.dumps(data1, indent=4)
+	data2 = json.dumps(data2, indent=4)
+
+	form_normal = TransactionForm()
+	form_hidden = HiddenForm()
+
+	if request.method == "POST" and form_hidden.is_valid():
+		data = form_hidden.cleaned_data["data"]
+		print data
+		data = json.loads(data)
+		print data
+
+		data["bucket"]
+
+		data = {"a": 1, "b": 2}
+
+		Transaction(**data).save()
+	return render(request, "test.html", locals())

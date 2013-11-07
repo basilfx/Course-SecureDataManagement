@@ -1,0 +1,44 @@
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+
+<script type="text/javascript">
+
+	var data = {{ transaction.data|safe }};
+
+	$(document).ready(function() {
+
+		function addData(data) {
+			var sender = $("#output #sender");
+			sender.append(data["sender"]);
+			var receiver = $("#output #receiver");
+			receiver.append(data["receiver"]);
+			var amount = $("#output #amount");
+			amount.append(data["amount"]);
+			var description = $("#output #description");
+			description.append(data["description"]);
+			var miliseconds = $("#output #miliseconds");
+			miliseconds.append(data["miliseconds"]);
+
+		}
+
+		function decrypt(data){
+			return data;
+		}
+
+		data = decrypt(data);
+		addData(data);
+
+	});
+
+
+</script>
+<h1>Transaction</h1>
+
+<div id="output">
+	<ul>
+	<li>Sender: <div id="sender"></div></li>
+	<li>Receiver: <div id="receiver"></div></li>
+	<li>Amount: <div id="amount"></div></li>
+	<li>Description: <div id="description"></div></li>
+	<li>Date: <div id="miliseconds"></div></li>
+	</ul>
+</div>

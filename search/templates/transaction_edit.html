@@ -1,0 +1,14 @@
+<h2>Edit transaction {{transaction.id}}</h2>
+<form id="visible_form" method="POST">
+{{form}}
+
+<input type="submit">
+
+</form>
+
+
+<form id="hidden_form" method="POST">
+{% csrf_token %}
+{{form_hidden}}
+
+</form>

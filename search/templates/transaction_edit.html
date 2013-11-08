@@ -4,10 +4,10 @@
 	$(document).ready(function() {
 
 		var data = {{transaction.data|safe}};
+		var user_id = {{user.id}};
 
 		$("#visible_form").on("submit", function(e) {
 			e.preventDefault();
-			console.log("awd");
 
 			var amount  = $("#visible_form input[name=amount]").val();
 			var sender  = $("#visible_form input[name=sender]").val();
@@ -18,37 +18,20 @@
 			var data  = { 
 				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
 				amount_bucket: hash(amount),
-				miliseconds_bucket: hash(miliseconds)
+				miliseconds_bucket: hash(miliseconds),
+				client_bucket: clientMappingFunction(user_id)
 			};
 			
 			//encrypt
 			$("#hidden_form input[name=data]").val(JSON.stringify(data));
 			$("#hidden_form").submit();
-		});
+		});	
 		
-		function addDataToForm(sender, receiver, amount, description) {
-			$("#visible_form #id_sender").val(sender);			
-			$("#visible_form #id_receiver").val(receiver);
-			$("#visible_form #id_amount").val(amount);
-			$("#visible_form #id_description").val(description);
-					
-		}
-		function decrypt(data){
-			return JSON.stringify(data);
-		}
 		data = decrypt(data);
 
 		var transaction = JSON.parse(data);
 		addDataToForm(transaction["sender"], transaction["receiver"], transaction["amount"], transaction["description"]);
 		
-		function encrypt(input){
-			return JSON.stringify(input);
-		}
-
-		function hash(input){
-			return input;
-		}
-
 	});
 </script>
 

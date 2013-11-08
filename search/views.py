@@ -22,6 +22,7 @@ def transaction_show(request, transaction_id):
 	return render(request,"transaction_show.html",locals())
 
 def transaction_new(request):
+	user = request.user
 	form = TransactionForm()
 	form_hidden = HiddenForm(data=request.POST or None)
 	if request.method == "POST" and form_hidden.is_valid():
@@ -35,6 +36,7 @@ def transaction_new(request):
 	return render(request, "transaction_new.html", locals())
 
 def transaction_edit(request, transaction_id):
+	user = request.user
 	transaction = get_object_or_404(Transaction,id=transaction_id)
 	form = TransactionForm()
 	form_hidden = HiddenForm(data=request.POST or None)

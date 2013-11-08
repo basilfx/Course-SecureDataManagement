@@ -3,7 +3,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 
-		var user_id = {{user_id}};
+		var user_id = {{user.id}};
 
 		$("#visible_form").on("submit", function(e) {
 			e.preventDefault();
@@ -27,37 +27,7 @@
 			$("#form_hidden").submit();
 		});
 
-		function encrypt(input){
-			return JSON.stringify(input);
-		}
-
-		function amountMappingFunction(input){
-			input = parseInt(input);
-			input = (input - input % 1000)/1000;
-			if (input < 0) {
-				input = 0;
-			} 
-			if (input > 10) {
-				input = 10;
-			}
-			return hash(input);
-		}
-
-		function clientMappingFunction(user_id){
-			return user_id;
-		}
-
-		function dateMappingFunction(input){
-			var year = 1000*60*60*24*365;
-			input = parseInt(input);
-			input = (input - input % year)/year;
-			return hash(input);
-		}
-
-		function hash(input){
-			return input;
-		}
-
+		
 	});
 </script>
 

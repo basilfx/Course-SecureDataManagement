@@ -35,9 +35,10 @@
 
 <h2>New Transaction</h2>
 <form id="visible_form" method="POST">
-{{form}}
+{% load bootstrap %}
+{{form | bootstrap}}
 
-<input type="submit">
+<input class="btn btn-lg btn-primary" type="submit">
 
 </form>
 

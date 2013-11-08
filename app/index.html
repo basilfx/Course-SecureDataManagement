@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="sdmApp">
+	<head>
+		<link rel="stylesheet" href="css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="css/bootstrap-theme.min.css"/>
+		<script src="lib/jquery-2.0.3.min.js" type="text/javascript"></script>
+		<script src="lib/angular-1.0.8.min.js" type="text/javascript"></script>
+		<script src="lib/bootstrap-3.0.2.min.js" type="text/javascript"></script>
+		<script src="app.js" type="text/javascript"></script>
+		<script src="controllers.js" type="text/javascript"></script>
+		<!---<script src="{% static "js/functions.js" %}" type="text/javascript"></script> -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		
+		<title>PaySafe</title>
+	</head>
+	<body>
+		<nav class="navbar navbar-default" role="navigation">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="index.html">PaySafe</a>
+			</div>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#">Logout</a></li>
+			</ul>
+		</nav>
+		<div class="container" ng-view>
+			
+		</div>
+	</body>
+</html>

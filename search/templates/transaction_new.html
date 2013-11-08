@@ -15,8 +15,8 @@
 
 			var data  = { 
 				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
-				amount_bucket: hash(amount),
-				miliseconds_bucket: hash(miliseconds)
+				amount_bucket: amountMappingFunction(amount),
+				miliseconds_bucket: dateMappingFunction(miliseconds)
 			};
 			
 			//encrypt
@@ -28,21 +28,26 @@
 			return JSON.stringify(input);
 		}
 
-		function mappingFunction(input){
+		function amountMappingFunction(input){
 			input = parseInt(input);
 			input = (input - input % 1000)/1000;
-			if input < 0 {
+			if (input < 0) {
 				input = 0;
 			} 
-			if input > 10 {
+			if (input > 10) {
 				input = 10;
 			}
+			return hash(input);
+		}
 
-			return input;
+		function dateMappingFunction(input){
+			var year = 1000*60*60*24*365;
+			input = parseInt(input);
+			input = (input - input % year)/year;
+			return hash(input);
 		}
 
 		function hash(input){
-			input = mappingFunction(input);
 			return input;
 		}
 

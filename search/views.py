@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.forms.models import model_to_dict
 from search.models import *
 from search.forms import *
-from django.contrib.auth import authenticate, login, forms
+from django.contrib.auth import authenticate, login, forms, logout
 import json
 
 
@@ -71,6 +71,10 @@ def client_index(request):
 def client_login(request):
     form = forms.AuthenticationForm()
     return render(request, "client_login.html", locals())
+
+def client_logout(request):
+    logout(request)
+    return redirect('search.views.client_login')
 
 def client_authenticate(request):
     username = request.POST['username']

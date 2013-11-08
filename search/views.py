@@ -22,9 +22,7 @@ def transaction_new(request):
 	form_hidden = HiddenForm(data=request.POST or None)
 	if request.method == "POST" and form_hidden.is_valid():
 		data = form_hidden.cleaned_data["data"]
-		print data
 		data = json.loads(data)
-		print data
 
 		instance = Transaction(**data)
 		instance.save()		
@@ -34,12 +32,24 @@ def transaction_new(request):
 
 def transaction_edit(request, transaction_id):
 	transaction = get_object_or_404(Transaction,id=transaction_id)
-	form = TransactionForm(instance=transaction,data=request.POST or None)
-	if request.method == "POST" and form.is_valid():
-		instance = form.save()
-		return redirect('search.views.transaction_show', transaction_id=instance.id)
+	form = TransactionForm()
+	form_hidden = HiddenForm(data=request.POST or None)
+	if request.method == "POST" and form_hidden.is_valid():
+		data = form_hidden.cleaned_data["data"]
+		print data
+		data = json.loads(data)
+		transaction.data = data["data"]
+		transaction.save()
+		return redirect('search.views.transaction_show', transaction_id=transaction.id)
 
 	return render(request, "transaction_edit.html", locals())
+
+def client_index(request):
+	data = []
+	for client in Client.objects.all():
+		data.append(model_to_dict(client, fields=["id", "username", ""]))
+	data = json.dumps(data, indent=4)
+	return render(request, "client_index.html", locals())
 
 def test(request):
 	data1 = {

@@ -1,3 +1,57 @@
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		var data = {{transaction.data|safe}};
+
+		$("#visible_form").on("submit", function(e) {
+			e.preventDefault();
+			console.log("awd");
+
+			var amount  = $("#visible_form input[name=amount]").val();
+			var sender  = $("#visible_form input[name=sender]").val();
+			var receiver  = $("#visible_form input[name=receiver]").val();
+			var description  = $("#visible_form input[name=description]").val();
+			var miliseconds = new Date().valueOf();
+
+			var data  = { 
+				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
+				amount_bucket: hash(amount),
+				miliseconds_bucket: hash(miliseconds)
+			};
+			
+			//encrypt
+			$("#hidden_form input[name=data]").val(JSON.stringify(data));
+			$("#hidden_form").submit();
+		});
+		
+		function addDataToForm(sender, receiver, amount, description) {
+			$("#visible_form #id_sender").val(sender);			
+			$("#visible_form #id_receiver").val(receiver);
+			$("#visible_form #id_amount").val(amount);
+			$("#visible_form #id_description").val(description);
+					
+		}
+		function decrypt(data){
+			return JSON.stringify(data);
+		}
+		data = decrypt(data);
+
+		var transaction = JSON.parse(data);
+		addDataToForm(transaction["sender"], transaction["receiver"], transaction["amount"], transaction["description"]);
+		
+		function encrypt(input){
+			return JSON.stringify(input);
+		}
+
+		function hash(input){
+			return input;
+		}
+
+	});
+</script>
+
 <h2>Edit transaction {{transaction.id}}</h2>
 <form id="visible_form" method="POST">
 {{form}}
@@ -6,8 +60,7 @@
 
 </form>
 
-
-<form id="hidden_form" method="POST">
+<form id="hidden_form" method="POST" style="display:none">
 {% csrf_token %}
 {{form_hidden}}
 

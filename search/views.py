@@ -103,6 +103,34 @@ def client_register(request):
         form = forms.UserCreationForm() # An unbound form
     return render(request, "client_register.html", locals())
 
+def transaction_search(request, query):
+    if request.user.is_authenticated():
+        user = request.user
+        client = Client.objects.get(user=user)
+        data = []
+        
+        amount = []
+        date = []
+        if query[0:6] == "amount":
+            query = query[7:].split(',')
+            for number in query:
+                print(number)
+                amount.append(int(number))
+                transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount)
+        else:
+            query = query[5:].split(',')
+            for number in query:
+                date.append(int(number))
+                transactions = Transaction.objects.filter(client_bucket=client.client_bucket,miliseconds_bucket__in=date)
+        
+        for transaction in transactions:
+            data.append(model_to_dict(transaction, fields=["id", "data"]))
+        data = json.dumps(data, indent=4)
+        return render(request,"transaction_search.html",locals())
+    else:
+        return redirect('search.views.client_login')
+
+
 
 def test(request):
     data1 = {

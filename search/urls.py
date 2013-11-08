@@ -14,4 +14,5 @@ urlpatterns = patterns('',
     url(r'^register/$', views.client_register),
     url(r'^client/$', views.client_index),
     url(r'^logout/$', views.client_logout),
+    url(r'^search/(?P<query>.+)$', views.transaction_search),
 )

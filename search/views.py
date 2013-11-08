@@ -10,45 +10,56 @@ from django.http import HttpResponse
 
 # Create your views here.
 def transaction_index(request):
-	user = request.user
-	data = []
-	for transaction in Transaction.objects.all():
-		data.append(model_to_dict(transaction, fields=["id", "data"]))
-	data = json.dumps(data, indent=4)
-	return render(request,"transaction_index.html",locals())
+	if request.user.is_authenticated():
+		user = request.user
+		client = Client.objects.get(user=user)
+		data = []
+		for transaction in Transaction.objects.get(client_bucket=client.client_bucket):
+			data.append(model_to_dict(transaction, fields=["id", "data"]))
+		data = json.dumps(data, indent=4)
+		return render(request,"transaction_index.html",locals())
+	else:
+		return redirect('search.views.client_login')
 
 def transaction_show(request, transaction_id):
-	transaction = get_object_or_404(Transaction,id=transaction_id)
-	return render(request,"transaction_show.html",locals())
+	if request.user.is_authenticated():
+		transaction = get_object_or_404(Transaction,id=transaction_id)
+		return render(request,"transaction_show.html",locals())
+	else:
+		return redirect('search.views.client_login')
 
 def transaction_new(request):
-	user = request.user
-	form = TransactionForm()
-	form_hidden = HiddenForm(data=request.POST or None)
-	if request.method == "POST" and form_hidden.is_valid():
-		data = form_hidden.cleaned_data["data"]
-		data = json.loads(data)
-
-		instance = Transaction(**data)
-		instance.save()		
-		return redirect('search.views.transaction_show', transaction_id=instance.id)
-
-	return render(request, "transaction_new.html", locals())
+	if request.user.is_authenticated():
+		user = request.user
+		form = TransactionForm()
+		form_hidden = HiddenForm(data=request.POST or None)
+		if request.method == "POST" and form_hidden.is_valid():
+			data = form_hidden.cleaned_data["data"]
+			data = json.loads(data)
+			instance = Transaction(**data)
+			instance.save()		
+			return redirect('search.views.transaction_show', transaction_id=instance.id)
+		return render(request, "transaction_new.html", locals())
+	else:
+		return redirect('search.views.client_login')
 
 def transaction_edit(request, transaction_id):
-	user = request.user
-	transaction = get_object_or_404(Transaction,id=transaction_id)
-	form = TransactionForm()
-	form_hidden = HiddenForm(data=request.POST or None)
-	if request.method == "POST" and form_hidden.is_valid():
-		data = form_hidden.cleaned_data["data"]
-		print data
-		data = json.loads(data)
-		transaction.data = data["data"]
-		transaction.save()
-		return redirect('search.views.transaction_show', transaction_id=transaction.id)
+	if request.user.is_authenticated():
+		user = request.user
+		transaction = get_object_or_404(Transaction,id=transaction_id)
+		form = TransactionForm()
+		form_hidden = HiddenForm(data=request.POST or None)
+		if request.method == "POST" and form_hidden.is_valid():
+			data = form_hidden.cleaned_data["data"]
+			print data
+			data = json.loads(data)
+			transaction.data = data["data"]
+			transaction.save()
+			return redirect('search.views.transaction_show', transaction_id=transaction.id)
 
-	return render(request, "transaction_edit.html", locals())
+		return render(request, "transaction_edit.html", locals())
+	else:
+		return redirect('search.views.client_login')
 
 def client_index(request):
 	data = []

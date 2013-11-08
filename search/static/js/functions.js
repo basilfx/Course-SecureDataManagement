@@ -11,6 +11,7 @@ function addDataToForm(sender, receiver, amount, description) {
 }
 
 function addData(data) {
+	data = JSON.parse(data);
 	var sender = $("#output #sender");
 	sender.append(data["sender"]);
 	var receiver = $("#output #receiver");

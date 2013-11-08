@@ -15,3 +15,4 @@ class Client(models.Model):
 	sym_key_client = models.CharField(max_length=100)
 	sym_key_cons = models.CharField(max_length=100)
 	user = models.OneToOneField(User)
+	client_bucket = models.IntegerField()

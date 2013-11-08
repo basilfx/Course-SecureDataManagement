@@ -3,13 +3,12 @@
 {% block content %}
 
 <h2>Login</h2>
-<form method="POST" action="{% url 'search.views.client_authenticate' %}">
+<form method="POST" action="{% url 'search.views.client_authenticate' %}" role="form">
 {% csrf_token %}
-{{form}}
+{% load bootstrap %}
+{{form|bootstrap}}
 
 <input type="submit">
 
 </form>
-
-
 {% endblock %}

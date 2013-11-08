@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'search',
     'django_extensions',
+    'bootstrapform',
 )
 
 MIDDLEWARE_CLASSES = (

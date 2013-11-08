@@ -12,21 +12,19 @@
 
 {% block content %}
 <table id="output" class="table table-striped">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Sender</th>
+			<th>Receiver</th>
+			<th>Amount</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
 
-<thead>
-<tr>
-	<th>Id</th>
-	<th>Sender</th>
-	<th>Receiver</th>
-	<th>Amount</th>
-	<th>Description</th>
-</tr>
-</thead>
-<tbody>
-
-</tbody>
+	</tbody>
 </table>
 
 <a href="{% url 'search.views.transaction_new' %}">New Transaction</a>
-
 {% endblock %}

@@ -1,47 +1,30 @@
-<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+{% extends "base.html" %}
 
-<script type="text/javascript">
+{% block title %}My transactions{% endblock %}
 
-	var data = {{ data|safe }};
-
-	$(document).ready(function() {
-
-		function addRow(id, sender, receiver, amount, description) {
-			var container = $("#output tbody");
-
-			container.append("<tr><td>" + id + "</td><td>" + sender + "</td><td>" + receiver + "</td><td>" + amount + "</td><td>" + description +"</td></tr>" );
-		}
-		function decrypt(data){
-			return data;
-		}
-
-		data = decrypt(data);
-
-
-		for (i in data) {
-			var id = data[i]["id"]
-			var transaction = JSON.parse(data[i]["data"]);
-			addRow(id, transaction["sender"], transaction["receiver"], transaction["amount"], transaction["description"]);
-		}
-
-	});
+{% block scripts %}
+{% load staticfiles %}
+<script>
+	var data = {{ data | safe }};
 </script>
+<script src="{% static "custom-js/transaction_index.js" %}" type="text/javascript"></script>
+{% endblock %}
 
+{% block content %}
+<table id="output" class="table table-striped">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Sender</th>
+			<th>Receiver</th>
+			<th>Amount</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
 
-<table id="output">
-
-<thead>
-<tr>
-	<td>Id</td>
-	<td>Sender</td>
-	<td>Receiver</td>
-	<td>Amount</td>
-	<td>Description</td>
-</tr>
-</thead>
-<tbody>
-
-</tbody>
+	</tbody>
 </table>
 
-<a href="/search/transaction/new/">New Transaction</a>
+<a href="{% url 'search.views.transaction_new' %}">New Transaction</a>
+{% endblock %}

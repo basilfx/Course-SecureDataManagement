@@ -2,11 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.forms.models import model_to_dict
 from search.models import *
 from search.forms import *
-
+from django.contrib.auth import authenticate, login, forms
 import json
+
+
+from django.http import HttpResponse
 
 # Create your views here.
 def transaction_index(request):
+	user = request.user
 	data = []
 	for transaction in Transaction.objects.all():
 		data.append(model_to_dict(transaction, fields=["id", "data"]))
@@ -50,6 +54,25 @@ def client_index(request):
 		data.append(model_to_dict(client, fields=["id", "username", ""]))
 	data = json.dumps(data, indent=4)
 	return render(request, "client_index.html", locals())
+
+def client_login(request):
+	form = forms.AuthenticationForm()
+	return render(request, "client_login.html", locals())
+
+def client_authenticate(request):
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+	if user is not None:
+		if user.is_active:
+			login(request, user)
+			#client = Client.objects.get(user=user), client_bucket=client.client_bucket
+			return redirect('search.views.transaction_index')
+		else:
+			return HttpResponse("Disabled")
+	else:
+		return HttpResponse("Invalid login")
+
 
 def test(request):
 	data1 = {

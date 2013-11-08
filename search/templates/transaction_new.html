@@ -3,6 +3,8 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 
+		var user_id = {{user_id}};
+
 		$("#visible_form").on("submit", function(e) {
 			e.preventDefault();
 			console.log("awd");
@@ -16,7 +18,8 @@
 			var data  = { 
 				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
 				amount_bucket: amountMappingFunction(amount),
-				miliseconds_bucket: dateMappingFunction(miliseconds)
+				miliseconds_bucket: dateMappingFunction(miliseconds),
+				client_bucket: clientMappingFunction(user_id)
 			};
 			
 			//encrypt
@@ -38,6 +41,10 @@
 				input = 10;
 			}
 			return hash(input);
+		}
+
+		function clientMappingFunction(user_id){
+			return user_id;
 		}
 
 		function dateMappingFunction(input){

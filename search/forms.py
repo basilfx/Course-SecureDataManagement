@@ -10,7 +10,8 @@ class TransactionForm(forms.Form):
 	receiver = forms.CharField()
 	description = forms.CharField()
 
-class Client(forms.ModelForm):
+class ClientForm(forms.ModelForm):
 	class Meta:
 		model = Client
 		fields = ["name","public_key", "sym_key_client", "sym_key_cons"]
+

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Login</h2>
+<form method="POST" action="{% url 'search.views.client_authenticate' %}">
+{% csrf_token %}
+{{form}}
+
+<input type="submit">
+
+</form>
+
+
+{% endblock %}

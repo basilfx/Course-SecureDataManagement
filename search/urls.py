@@ -9,5 +9,8 @@ urlpatterns = patterns('',
 	url(r'^transactions/(?P<transaction_id>\d+)/edit/$', views.transaction_edit),
 	url(r'^transactions/(?P<transaction_id>\d+)/$', views.transaction_show),
     url(r'^transactions/$', views.transaction_index),
+    url(r'^login/$', views.client_login),
+    url(r'^authenticate/$', views.client_authenticate),
     url(r'^client/$', views.client_index),
+
 )

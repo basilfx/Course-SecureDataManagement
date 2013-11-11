@@ -1,1 +1,0 @@
-from phr.settings.generic import *

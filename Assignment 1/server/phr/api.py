@@ -9,7 +9,7 @@ def get_attributes(request):
     """
     Retrieve all available attributes currently used in the system.
 
-    Returns: list of attributes
+    @returns list of attributes
     """
 
     return settings.PHR_ATTRIBUTES
@@ -19,7 +19,7 @@ def get_categories(request):
     """
     Retrieve all available categories currently used in the system.
 
-    Returns: list of (id, category)
+    @returns list of (id, category)
     """
 
     return settings.PHR_CATEGORIES
@@ -30,11 +30,9 @@ def get_key(request, record_id, category_id):
     Retrieve an encrypted key for a given record and category. The key is
     encrypted with the attributes specified by the encrypter.
 
-    Parameters:
-    record_id -- id of the records
-    category_id -- id of category
-
-    Returns: (encrypted) key if matched, else False.
+    @param record_id ID of the records
+    @param category_id -- ID of category
+    @returns (encrypted) key if matched, else False.
     """
 
     try:

@@ -1,38 +1,67 @@
 from django.test import TestCase
 
-from phr_cli.protocol import Protocol
-from phr_cli.protocol import ProtocolDecryptException, ProtocolKeyException
+from phr_cli import protocol
 from phr_cli.utils import pad_message, unpad_message
 
 class ProtocolTest(TestCase):
     def setUp(self):
         self.person = "John Doe"
         self.message = "Hi, this is a test message of a unspecific length"
-        self.categories = {
-            1: "PERSONAL",
-            2: "HEALTH",
-            3: "TRAINING"
-        }
-        self.parties = {
-            1: ["DOCTOR", "INSURANCE", "EMPLOYER"],
-            2: ["HOSPITAL"],
-            3: ["HEALTH_CLUB"]
+        self.categories = [
+            "PERSONAL",
+            "HEALTH",
+            "TRAINING",
+
+            # For testing only
+            "TEST1",
+            "TEST2"
+        ]
+        self.parties = [
+            "DOCTOR",
+            "INSURANCE",
+            "EMPLOYER",
+            "HOSPITAL",
+            "HEALTHCLUB"
+        ]
+        self.mappings = {
+            "PERSONAL": ["DOCTOR", "INSURANCE", "EMPLOYER"],
+            "HEALTH":   ["HOSPITAL"],
+            "TRAINING": ["HEALTHCLUB"],
+
+            # For testing only
+            "TEST1":   [["DOCTOR", "INSURANCE"], "EMPLOYER", "HOSPITAL", "HEALTHCLUB"]
         }
 
-        self.protocol = Protocol()
-        self.keypairs = self.protocol.setup(self.person, self.categories)
-        self.secrets = self.protocol.keygen(self.keypairs, self.parties)
+        self.protocol = protocol.Protocol(self.categories, self.parties, self.mappings)
+        self.keypairs = self.protocol.setup()
+        self.secrets = self.protocol.keygen(self.keypairs)
 
     def test_encrypt_decrypt_ok(self):
-        cipher_one = self.protocol.encrypt(self.message, self.keypairs, 1, ["DOCTOR", "INSURANCE"])
-        cipher_two = self.protocol.encrypt(self.message, self.keypairs, 1, ["EMPLOYER"])
+        cipher_one = self.protocol.encrypt(self.message, self.keypairs, "PERSONAL", ["DOCTOR", "INSURANCE"])
+        cipher_two = self.protocol.encrypt(self.message, self.keypairs, "PERSONAL", ["EMPLOYER"])
 
         # Same message with different policies should not have same ciphers
         self.assertNotEqual(cipher_one, cipher_two)
 
-        plain_doctor = self.protocol.decrypt(cipher_one, self.secrets["DOCTOR"], 1)
-        plain_insurance = self.protocol.decrypt(cipher_one, self.secrets["INSURANCE"], 1)
-        plain_employer = self.protocol.decrypt(cipher_two, self.secrets["EMPLOYER"], 1)
+        plain_doctor = self.protocol.decrypt(cipher_one, self.secrets["DOCTOR"])
+        plain_insurance = self.protocol.decrypt(cipher_one, self.secrets["INSURANCE"])
+        plain_employer = self.protocol.decrypt(cipher_two, self.secrets["EMPLOYER"])
+
+        # Encrypt -> Decrypt should yield the same
+        self.assertEqual(self.message, plain_doctor)
+        self.assertEqual(self.message, plain_insurance)
+        self.assertEqual(self.message, plain_employer)
+
+    def test_encrypt_decrypt_shared(self):
+        cipher = self.protocol.encrypt(self.message, self.keypairs, "TEST1", [("DOCTOR", "INSURANCE"), "EMPLOYER"])
+
+        plain_doctor = self.protocol.decrypt(cipher, self.secrets["DOCTOR"])
+        plain_insurance = self.protocol.decrypt(cipher, self.secrets["INSURANCE"])
+        plain_employer = self.protocol.decrypt(cipher, self.secrets["EMPLOYER"])
+
+        # Hospital has no shared attribute
+        with self.assertRaises(protocol.DecryptError) as context:
+            self.protocol.decrypt(cipher, self.secrets["HOSPITAL"])
 
         # Encrypt -> Decrypt should yield the same
         self.assertEqual(self.message, plain_doctor)
@@ -40,18 +69,35 @@ class ProtocolTest(TestCase):
         self.assertEqual(self.message, plain_employer)
 
     def test_encrypt_decrypt_fail(self):
-        cipher = self.protocol.encrypt(self.message, self.keypairs, 1, ["DOCTOR", "INSURANCE"])
+        cipher = self.protocol.encrypt(self.message, self.keypairs, "HEALTH", ["DOCTOR", "INSURANCE"])
 
         # Decryption should fail since it lacks an attribute
-        with self.assertRaises(ProtocolDecryptException) as context:
-            plain = self.protocol.decrypt(cipher, self.secrets["EMPLOYER"], 1)
+        with self.assertRaises(protocol.KeyRingError) as context:
+            plain = self.protocol.decrypt(cipher, self.secrets["EMPLOYER"])
+
+    def test_decrypt_malformed(self):
+        cipher = "ABC123" * 16
+
+        # No data
+        with self.assertRaises(protocol.DecryptError) as context:
+            self.protocol.decrypt("", self.keypairs)
+
+        # Malformed data
+        with self.assertRaises(protocol.DecryptError) as context:
+            self.protocol.decrypt(cipher, self.keypairs)
+
+    def test_missing_party(self):
+        with self.assertRaises(protocol.ParameterError) as context:
+            cipher = self.protocol.encrypt(self.message, self.keypairs, "HEALTH", [])
 
     def test_encrypt_missing_keys(self):
-        with self.assertRaises(ProtocolKeyException) as context:
-            self.protocol.encrypt(self.message, self.keypairs, 5, [])
+        # Non-exisiting party
+        with self.assertRaises(protocol.ParameterError) as context:
+            self.protocol.encrypt(self.message, self.keypairs, "NOT_EXISTING", [])
 
-        with self.assertRaises(ProtocolKeyException) as context:
-            self.protocol.decrypt("", [], 5)
+        # No keyring
+        with self.assertRaises(protocol.KeyRingError) as context:
+            self.protocol.decrypt("", [])
 
 class UtilsTest(TestCase):
     def test_pad_unpad(self):
@@ -69,6 +115,9 @@ class UtilsTest(TestCase):
         self.assertEqual(len(padded_a) % block_size, 0)
         self.assertEqual(len(padded_b) % block_size, 0)
         self.assertEqual(len(padded_c) % block_size, 0)
+
+        # Aligned message will one block longer due to overhead
+        self.assertEqual(len(padded_b), len(message_b) + block_size)
 
         # Empty message is at most one block
         self.assertEqual(len(padded_c), block_size)

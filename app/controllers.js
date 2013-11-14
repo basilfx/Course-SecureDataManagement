@@ -3,12 +3,36 @@ var paySafeControllers = angular.module('paySafeControllers', []);
 paySafeControllers.controller('TransactionListCtrl', ['$scope',
 	function($scope) {
 		$scope.transactions = [
-			{ id: "1", sender: "Hou", receiver: "Hallow", amount: 3, description: "Oke"},
-			{ id: "2", sender: "Hoi", receiver: "Hallow!", amount: 5, description: "Goed"},
+			{ id: 1, sender: "Hou", receiver: "Hallow", amount: 3, description: "Oke", editMode: false},
+			{ id: 2, sender: "Hoi", receiver: "Hallow!", amount: 5, description: "Goed", editMode: false},
 		];
+
+		$scope.createTransaction = function() {
+			$scope.transactions.push({
+				id: newId(), sender: "", receiver: "", amount: 0,
+				description: "", editMode: true
+			});
+		}
+
+		$scope.updateTransaction = function(id) {
+			$scope.transactions.forEach(function(t) {
+				if(t.id === id) {
+					t.editMode = false;
+				}
+			})
+		}
+
+		$scope.deleteTransaction = function(id) {
+			$scope.transactions = $scope.transactions.filter( function(t) {
+				return t.id !== id;
+			})
+		}
+
+		function newId() {
+			return 1 + Math.max.apply(null, $scope.transactions.map( function(t) { return t.id; }));
+		}
 	}
 ]);
-
 
 paySafeControllers.controller('TransactionShowCtrl', ['$scope', '$routeParams',
 	function($scope, $routeParams) {

@@ -1,8 +1,11 @@
 // Configuratie app
-var sdmApp = angular.module('sdmApp', []);
+var paySafeApp = angular.module('paySafeApp', [
+	'ngRoute',
+	'paySafeControllers'
+]);
 
 // Routes
-sdmApp.config(['$routeProvider',
+paySafeApp.config(['$routeProvider',
 	function($routeProvider) {
 		$routeProvider.
 			when('/', {

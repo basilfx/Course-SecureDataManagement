@@ -8,3 +8,27 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope',
 		];
 	}
 ]);
+
+
+paySafeControllers.controller('TransactionShowCtrl', ['$scope', '$routeParams',
+	function($scope, $routeParams) {
+		transaction_id = $routeParams.id;
+		//Query server
+		//Decrypt data
+		//$scope.transaction = decrypted data
+		$scope.transaction = { id: transaction_id, sender: "Hou", receiver: "Hallow", amount: 3, description: "Oke"};
+	}
+]);
+
+paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$routeParams',
+	function($scope, $routeParams) {
+		$scope.field = "amount"
+		$scope.operation = "equal"
+		//Query server
+		//Decrypt data
+		//$scope.transaction = decrypted data
+	}
+]);
+
+paySafeControllers.controller('ClientLoginCtrl');
+paySafeControllers.controller('ClientRegisterCtrl');

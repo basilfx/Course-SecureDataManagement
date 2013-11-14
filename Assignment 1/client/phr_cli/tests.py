@@ -33,19 +33,19 @@ class ProtocolTest(TestCase):
         }
 
         self.protocol = protocol.Protocol(self.categories, self.parties, self.mappings)
-        self.keypairs = self.protocol.setup()
-        self.secrets = self.protocol.keygen(self.keypairs)
+        self.master_keys, self.public_keys = self.protocol.setup()
+        self.secret_keys = self.protocol.keygen(self.master_keys, self.public_keys)
 
     def test_encrypt_decrypt_ok(self):
-        cipher_one = self.protocol.encrypt(self.message, self.keypairs, "PERSONAL", ["DOCTOR", "INSURANCE"])
-        cipher_two = self.protocol.encrypt(self.message, self.keypairs, "PERSONAL", ["EMPLOYER"])
+        cipher_one = self.protocol.encrypt(self.message, self.public_keys, "PERSONAL", ["DOCTOR", "INSURANCE"])
+        cipher_two = self.protocol.encrypt(self.message, self.public_keys, "PERSONAL", ["EMPLOYER"])
 
         # Same message with different policies should not have same ciphers
         self.assertNotEqual(cipher_one, cipher_two)
 
-        plain_doctor = self.protocol.decrypt(cipher_one, self.secrets["DOCTOR"])
-        plain_insurance = self.protocol.decrypt(cipher_one, self.secrets["INSURANCE"])
-        plain_employer = self.protocol.decrypt(cipher_two, self.secrets["EMPLOYER"])
+        plain_doctor = self.protocol.decrypt(cipher_one, self.secret_keys["DOCTOR"])
+        plain_insurance = self.protocol.decrypt(cipher_one, self.secret_keys["INSURANCE"])
+        plain_employer = self.protocol.decrypt(cipher_two, self.secret_keys["EMPLOYER"])
 
         # Encrypt -> Decrypt should yield the same
         self.assertEqual(self.message, plain_doctor)
@@ -53,15 +53,15 @@ class ProtocolTest(TestCase):
         self.assertEqual(self.message, plain_employer)
 
     def test_encrypt_decrypt_shared(self):
-        cipher = self.protocol.encrypt(self.message, self.keypairs, "TEST1", [("DOCTOR", "INSURANCE"), "EMPLOYER"])
+        cipher = self.protocol.encrypt(self.message, self.public_keys, "TEST1", [("DOCTOR", "INSURANCE"), "EMPLOYER"])
 
-        plain_doctor = self.protocol.decrypt(cipher, self.secrets["DOCTOR"])
-        plain_insurance = self.protocol.decrypt(cipher, self.secrets["INSURANCE"])
-        plain_employer = self.protocol.decrypt(cipher, self.secrets["EMPLOYER"])
+        plain_doctor = self.protocol.decrypt(cipher, self.secret_keys["DOCTOR"])
+        plain_insurance = self.protocol.decrypt(cipher, self.secret_keys["INSURANCE"])
+        plain_employer = self.protocol.decrypt(cipher, self.secret_keys["EMPLOYER"])
 
         # Hospital has no shared attribute
         with self.assertRaises(protocol.DecryptError) as context:
-            self.protocol.decrypt(cipher, self.secrets["HOSPITAL"])
+            self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL"])
 
         # Encrypt -> Decrypt should yield the same
         self.assertEqual(self.message, plain_doctor)
@@ -69,31 +69,31 @@ class ProtocolTest(TestCase):
         self.assertEqual(self.message, plain_employer)
 
     def test_encrypt_decrypt_fail(self):
-        cipher = self.protocol.encrypt(self.message, self.keypairs, "HEALTH", ["DOCTOR", "INSURANCE"])
+        cipher = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["DOCTOR", "INSURANCE"])
 
         # Decryption should fail since it lacks an attribute
         with self.assertRaises(protocol.KeyRingError) as context:
-            plain = self.protocol.decrypt(cipher, self.secrets["EMPLOYER"])
+            plain = self.protocol.decrypt(cipher, self.secret_keys["EMPLOYER"])
 
     def test_decrypt_malformed(self):
         cipher = "ABC123" * 16
 
         # No data
         with self.assertRaises(protocol.DecryptError) as context:
-            self.protocol.decrypt("", self.keypairs)
+            self.protocol.decrypt("", self.secret_keys["EMPLOYER"])
 
         # Malformed data
         with self.assertRaises(protocol.DecryptError) as context:
-            self.protocol.decrypt(cipher, self.keypairs)
+            self.protocol.decrypt(cipher, self.secret_keys["EMPLOYER"])
 
     def test_missing_party(self):
         with self.assertRaises(protocol.ParameterError) as context:
-            cipher = self.protocol.encrypt(self.message, self.keypairs, "HEALTH", [])
+            cipher = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", [])
 
     def test_encrypt_missing_keys(self):
         # Non-exisiting party
         with self.assertRaises(protocol.ParameterError) as context:
-            self.protocol.encrypt(self.message, self.keypairs, "NOT_EXISTING", [])
+            self.protocol.encrypt(self.message, self.public_keys, "NOT_EXISTING", [])
 
         # No keyring
         with self.assertRaises(protocol.KeyRingError) as context:

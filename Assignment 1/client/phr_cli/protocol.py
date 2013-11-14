@@ -18,17 +18,18 @@ def connect(self, host):
     api = jsonrpclib.Server(host)
 
     try:
-        attributes = api.get_attributes()
         categories = api.get_categories()
+        parties = api.get_parties()
+        mappings = api.get_mappings()
     except jsonrpclib.ProtocolError:
-        raise Exception("Unable to connect to remote server")
+        raise Exception("Unable to communicate to remote server")
 
     # Validate response
-    if not type(attributes) == list or not type(categories) == list:
+    if not type(categories) == list or not type(parties) == list or not type(mappings) == dict:
         raise Exception("Remote server returned invalid data")
 
     # Done
-    return attributes, categories
+    return categories, parties, mappings
 
 class Protocol(object):
     """
@@ -60,33 +61,40 @@ class Protocol(object):
         """
         For each category, generate a public key and a master key
 
-        @return Dictionary of public keys and master keys per category
+        @return Tuple of master keys and public keys. Each set of keys is a
+                dictionary per category.
         """
 
         # Generate a public key and master key for each category
-        result = {}
+        master_keys = {}
+        public_keys = {}
 
         for category in self.categories:
             # Generate keys
             mk, pk = self.scheme.setup()
 
             # Add to result
-            result[category] = (pk, mk)
+            master_keys[category] = mk
+            public_keys[category] = pk
 
         # Done
-        return result
+        return master_keys, public_keys
 
-    def keygen(self, keypairs):
+    def keygen(self, master_keys, public_keys):
         """
-        Generate a secret key for the system mappings, given the public keys and
-        master keys
+        Generate secret keys for the system mappings, given the public keys and
+        master keys per category.
 
-        @param keypairs Dictionary of public keys and master keys per category
-        @result Dictionary of public keys and secret keys per party and category
+        @param master_keys Dictionary of master keys per category
+        @param public_keys Dictionary of public keys per category
+        @return Dictionary of secret keys per party and category
+
+        @throws KeyRingError if no keys are available for a requested category.
         """
 
         # Validate parameters
-        keypairs = self.clean_keypairs(keypairs)
+        master_keys = self.clean_keys(master_keys)
+        public_keys = self.clean_keys(public_keys)
 
         # For each party, generate a secret key for a specific category
         result = {}
@@ -94,7 +102,8 @@ class Protocol(object):
         for category, parties in self.mappings.iteritems():
             # Unpack keys
             try:
-                pk, mk = keypairs[category]
+                mk = master_keys[category]
+                pk = public_keys[category]
             except LookupError:
                 raise KeyRingError("No public key and master key available for category %s" % category)
 
@@ -108,19 +117,19 @@ class Protocol(object):
                     if not item in result:
                         result[item] = {}
 
-                    result[item][category] = (pk, sk)
+                    result[item][category] = sk
 
         # Done
         return result
 
-    def encrypt(self, plain, keypairs, category, parties):
+    def encrypt(self, plain, public_keys, category, parties):
         """
         Encrypt a given plain message of a specific category for given parties.
         The message itself will be encryped with AES, but the session key will
         be encrypted with CP-ABE. The category will be encoded in the cipher.
 
-        @param plain Message to encrypt
-        @param keypairs Dictionary of public keys and master keys per category
+        @param plain Message to encrypt. Can be text or binary data.
+        @param public_keys Dictionary of public keys per category.
         @param category Category of message
         @param parties List of parties allowed to decrypt this message.
         @return Encrypted message with header
@@ -129,13 +138,13 @@ class Protocol(object):
         """
 
         # Validate parameters
-        keypairs = self.clean_keypairs(keypairs)
+        public_keys = self.clean_keys(public_keys)
         category = self.clean_category(category)
         parties = self.clean_parties(parties)
 
-        # Unpack keys
+        # Unpack key
         try:
-            pk, _ = keypairs[category]
+            pk = public_keys[category]
         except LookupError:
             raise KeyRingError("No public key available for category %s" % category)
 
@@ -164,22 +173,22 @@ class Protocol(object):
         # Done
         return result.getvalue()
 
-    def decrypt(self, cipher, keypairs):
+    def decrypt(self, cipher, secret_keys):
         """
         Decrypt a given cipher message including header. Message category will
         be deduced from cipher.
 
         @param cipher Message to decrypt
-        @param keypairs Dictionary of public keys and secret keys per party and
-               category
+        @param secret_keys Dictionary of secret keys per category
         @return Decrypted message
 
         @throws DecryptError if data is invalid or if attributes are missing in
                 keypairs
         @throws KeyRingError if no public key is available for cipher's category
         """
+
         # Validate parameters
-        keypairs = self.clean_keypairs(keypairs)
+        secret_keys = self.clean_keys(secret_keys)
 
         # Create result buffer
         cipher = io.BytesIO(cipher)
@@ -196,15 +205,17 @@ class Protocol(object):
         # Unpack category from cipher
         category = self.clean_category(aes_key_cipher["category"])
 
-        # Unpack keys
+        # Unpack key
         try:
-            pk, sk = keypairs[category]
+            sk = secret_keys[category]
         except LookupError:
             raise KeyRingError("No public key and secret key available for category %s" % category)
 
         # Decrypt the AES key
         try:
-            aes_key_plain = self.scheme.decrypt(pk, sk, aes_key_cipher)
+            # For some reason, the decrypt method wants a public key. We don't
+            # supply it since it isn't required.
+            aes_key_plain = self.scheme.decrypt(None, sk, aes_key_cipher)
         except Exception, e:
             # There is a bug in Charm which requires a fix in the scheme to not
             # crash during execution. See for the idea: http://bit.ly/1e19H7A
@@ -221,27 +232,27 @@ class Protocol(object):
         # Done
         return unpad_message(plain_padded)
 
-    def clean_keypairs(self, keypairs):
+    def clean_keys(self, keys):
         """
-        Validate length of key ring. Private helper.
+        Validate length of keys. Private helper.
 
-        @param keypairs Given key pairs
-        @result Given keypairs
+        @param keypairs Given keys
+        @return Validates keys
 
         @throws KeyRingError if no keys available
         """
-        if len(keypairs) == 0:
-            raise KeyRingError("Empty key pairs")
+        if len(keys) == 0:
+            raise KeyRingError("Empty keys")
 
         # Done
-        return keypairs
+        return keys
 
     def clean_category(self, category):
         """
         Validate category. Private helper.
 
         @param category Category to validate
-        @result Given keypair
+        @return Given keypair
 
         @throws ParameterError if category is not known to the system
         """
@@ -256,7 +267,7 @@ class Protocol(object):
         Validate mappings. Private helper.
 
         @param mappings Dictionary of mappings to validate
-        @result Given mappings
+        @return Given mappings
 
         @throws ParameterError if a category key does not exist or a given
                 party value does not exists

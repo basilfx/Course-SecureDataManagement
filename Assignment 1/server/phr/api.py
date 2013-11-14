@@ -4,25 +4,35 @@ from jsonrpc import jsonrpc_method
 
 from phr.models import Key
 
-@jsonrpc_method("get_attributes")
-def get_attributes(request):
-    """
-    Retrieve all available attributes currently used in the system.
-
-    @returns list of attributes
-    """
-
-    return settings.PHR_ATTRIBUTES
-
 @jsonrpc_method("get_categories")
 def get_categories(request):
     """
     Retrieve all available categories currently used in the system.
 
-    @returns list of (id, category)
+    @returns List of categories
     """
 
     return settings.PHR_CATEGORIES
+
+@jsonrpc_method("get_parties")
+def get_parties(request):
+    """
+    Retrieve all available parties currently used in the system.
+
+    @returns List of attributes
+    """
+
+    return settings.PHR_PARTIES
+
+@jsonrpc_method("get_mappings")
+def get_mappings(request):
+    """
+    Retrieve all mappings between a category and parties.
+
+    @returns Dictionary of mappings
+    """
+
+    return settings.PHR_MAPPINGS
 
 @jsonrpc_method("get_key")
 def get_key(request, record_id, category_id):
@@ -39,3 +49,10 @@ def get_key(request, record_id, category_id):
         return Key.objects.get(record_id=record_id, category_id=category_id)
     except:
         return False
+
+@jsonrpc_method("create_record")
+def create_record(request):
+    """
+    """
+
+    pass

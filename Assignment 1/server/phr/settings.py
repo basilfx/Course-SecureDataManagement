@@ -165,17 +165,24 @@ LOGGING = {
     }
 }
 
-PHR_ATTRIBUTES = [
-    "PERSON",
+
+# PHR related configuration
+PHR_CATEGORIES = [
+    "PERSONAL",
+    "HEALTH",
+    "TRAINING"
+]
+
+PHR_PARTIES = [
     "DOCTOR",
     "INSURANCE",
     "EMPLOYER",
     "HOSPITAL",
-    "HEALTH_CLUB"
+    "HEALTHCLUB"
 ]
 
-PHR_CATEGORIES = [
-    (1, "Patient"),
-    (2, "Health"),
-    (3, "Training")
-]
+PHR_MAPPINGS = {
+    "PERSONAL": ["DOCTOR", "INSURANCE", "EMPLOYER"],
+    "HEALTH":   ["HOSPITAL"],
+    "TRAINING": ["HEALTHCLUB"]
+}

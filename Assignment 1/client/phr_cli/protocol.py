@@ -9,34 +9,18 @@ from Crypto import Random
 from phr_cli.utils import pad_message, unpad_message
 
 import jsonrpclib
+import base64
 import struct
 import zlib
 import io
-
-def connect(self, host):
-    # Retrieve the server data
-    api = jsonrpclib.Server(host)
-
-    try:
-        categories = api.get_categories()
-        parties = api.get_parties()
-        mappings = api.get_mappings()
-    except jsonrpclib.ProtocolError:
-        raise Exception("Unable to communicate to remote server")
-
-    # Validate response
-    if not type(categories) == list or not type(parties) == list or not type(mappings) == dict:
-        raise Exception("Remote server returned invalid data")
-
-    # Done
-    return categories, parties, mappings
 
 class Protocol(object):
     """
     Wrapper for CP-ABE scheme with support for multiple categories, parties and
     encryption/decryption of unspecified data.
 
-    Encrypt and decrypt functions are based on http://bit.ly/17PaPfK.
+    Encrypt and decrypt use symmetric encryption for the data while the key is
+    encrypted with CP-ABE. This is based on http://bit.ly/17PaPfK.
     """
 
     def __init__(self, categories, parties, mappings):
@@ -171,7 +155,7 @@ class Protocol(object):
         result.write(aes.encrypt(plain_padded))
 
         # Done
-        return result.getvalue()
+        return base64.b64encode(result.getvalue())
 
     def decrypt(self, cipher, secret_keys):
         """
@@ -191,7 +175,7 @@ class Protocol(object):
         secret_keys = self.clean_keys(secret_keys)
 
         # Create result buffer
-        cipher = io.BytesIO(cipher)
+        cipher = io.BytesIO(base64.b64decode(cipher))
 
         # Initialize AES
         try:
@@ -231,6 +215,35 @@ class Protocol(object):
 
         # Done
         return unpad_message(plain_padded)
+
+    def keys_to_base64(self, keys):
+        """
+        Given a keyring (or similar structure), convert it to Base64, which is
+        safe for transport.
+
+        @param keys Keyring (or similar)
+        @return Base64 string
+        @throws KeyRingError if no keys are serialized
+        """
+
+        # Validate keys
+        keys = self.clean_keys(keys)
+
+        # Serialize
+        return objectToBytes(keys, self.group)
+
+    def base64_to_keys(self, data):
+        """
+        Given a Base64 string, convert it back to a keyring (or similar).
+
+        @return data Base64 string
+        @returns Keyring (or similar)
+        @throws KeyRingError if no keys are serialized
+        """
+        keys = bytesToObject(data, self.group)
+
+        # Validate result
+        return self.clean_keys(keys)
 
     def clean_keys(self, keys):
         """

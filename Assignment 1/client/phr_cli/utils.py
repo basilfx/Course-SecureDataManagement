@@ -1,3 +1,5 @@
+from django.core.management.base import CommandError
+
 from Crypto import Random
 
 import struct
@@ -37,3 +39,58 @@ def unpad_message(message):
 
     # Done
     return message.read(original_length)
+
+def unpack_arguments(args, formats):
+    """
+    Unpack a list of arguments and format them according to formats. Formats is
+    a list of functions which will be applied to that argument. Both args and
+    format need to be of the same length.
+
+    Helper method to use with Django management commands.
+
+    @param args List of arguments to format
+    @param format List of formatting functions
+    @return List of formatted arguments
+    @throws CommandError if len(args) != len(formats) or if data cannot be
+            formatted.
+    """
+
+    # Verify number of arguments
+    expected, given = len(formats), len(args)
+
+    if expected != given:
+        raise CommandError("Expected %d arguments (%d given)" % (expected, given))
+
+    # Parse arguments
+    result = []
+
+    for arg, format in zip(args, formats):
+        try:
+            result.append(format(arg))
+        except:
+            raise CommandError("Unable to parse argument %d" % (len(result) + 1))
+
+    # Done
+    return result
+
+def str_upper(data):
+    """
+    Given some data, convert it to string and uppercase.
+
+    @param data Any data that can be stringified
+    @return String representation in uppercase of data
+    """
+
+    return str(data).upper()
+
+def str_upper_split(data, delimeter=","):
+    """
+    Given some data, convert it to string and uppercase and split it by a
+    delimeter.
+
+    @param data Any data that can be stringified
+    @param delimeter Optional delimeter to split string
+    @return List of string representations in uppercase of data
+    """
+
+    return str(data).upper().split(delimeter)

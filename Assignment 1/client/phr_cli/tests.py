@@ -1,6 +1,7 @@
+from django.core.management.base import CommandError
 from django.test import TestCase
 
-from phr_cli import protocol
+from phr_cli import protocol, data_file, utils
 from phr_cli.utils import pad_message, unpad_message
 
 class ProtocolTest(TestCase):
@@ -131,3 +132,32 @@ class UtilsTest(TestCase):
         self.assertEqual(message_b, unpadded_b)
         self.assertEqual(message_c, unpadded_c)
 
+    def test_str_upper(self):
+        self.assertEqual(utils.str_upper("aa"), "AA")
+        self.assertEqual(utils.str_upper(['a', 'b']), "['A', 'B']")
+
+    def test_str_upper_split(self):
+        self.assertEqual(utils.str_upper_split("a,b,c"), ['A', 'B', 'C'])
+        self.assertEqual(utils.str_upper_split("a,b,c", ":"), ['A,B,C'])
+
+    def test_unpack_arguments(self):
+        def multiply(data):
+            return int(data) * 10
+
+        args = ["1", "hello", "my,options"]
+        formats_one = [multiply, str, utils.str_upper_split]
+        formats_two = [multiply, int, utils.str_upper_split]
+
+        # Default behaviour
+        self.assertEqual(utils.unpack_arguments(args, formats_one), [10, "hello", ["MY", "OPTIONS"]])
+
+        # Unmatching lengts
+        with self.assertRaises(CommandError) as context:
+            utils.unpack_arguments(args, [])
+
+        with self.assertRaises(CommandError) as context:
+            utils.unpack_arguments([], formats_one)
+
+        # Invalid formats
+        with self.assertRaises(CommandError) as context:
+            utils.unpack_arguments(args, formats_two)

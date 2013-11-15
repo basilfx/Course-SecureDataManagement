@@ -2,9 +2,28 @@
 */*/settings/local.py
 */static/
 */media/
-
-# Python files
 *.py[cod]
+
+# C extensions
+*.so
+
+#databases
+*.sqlite3
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib64
+__pycache__
 
 # OS Files
 .DS_Store

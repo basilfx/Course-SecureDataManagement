@@ -1,0 +1,40 @@
+<h2>Search</h2>
+
+<form name="myForm">
+	<h4>Select Field</h4>
+	<input type="radio" ng-model="field" value="amount">  Amount <br/>
+	<input type="radio" ng-model="field" value="date"> Date <br/>
+	<tt>Choice = {{field}}</tt><br/>
+	<h4>Select operation</h4>
+	<input type="radio" ng-model="operation" value="greater">  Greater than <br/>
+	<input type="radio" ng-model="operation" value="equal"> Equals to <br/>
+	<input type="radio" ng-model="operation" value="less">  Less than <br/>
+	<tt>Choice = {{operation}}</tt><br/>
+    <div class="input-group">
+      <input type="text" ng-model="search_field" class="form-control">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" ng-click="query()">Go!</button>
+      </span>
+    </div>
+</form>
+
+<table ng-show="show_table" class="table table-striped">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Sender</th>
+			<th>Receiver</th>
+			<th>Amount</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="transaction in transactions">
+			<td>{{transaction.id}}</td>
+			<td>{{transaction.sender}}</td>
+			<td>{{transaction.receiver}}</td>
+			<td>{{transaction.amount}}</td>
+			<td>{{transaction.description}}</td>
+		</tr>
+	</tbody>
+</table>

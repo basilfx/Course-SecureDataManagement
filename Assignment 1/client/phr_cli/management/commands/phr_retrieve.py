@@ -32,10 +32,19 @@ class Command(BaseCommand):
             key = api.get_key(storage.record_id, key_id)
 
             # Try to decrypt the key
-            try:
-                data = instance.decrypt(key["data"], storage.secret_keys)
-            except DecryptError:
-                # Just ignore
+            success2 = False
+
+            for secret_keys in storage.secret_keys.itervalues():
+                try:
+                    data = instance.decrypt(key["data"], secret_keys)
+                    success2 = True
+
+                    break
+                except DecryptError:
+                    # Just ignore
+                    continue
+
+            if not success2:
                 continue
 
             # Store it
@@ -54,4 +63,4 @@ class Command(BaseCommand):
             storage.save()
             self.stdout.write("Imported key\n")
         else:
-            self.stdout.write("Unable to import key.")
+            self.stderr.write("Unable to import key.")

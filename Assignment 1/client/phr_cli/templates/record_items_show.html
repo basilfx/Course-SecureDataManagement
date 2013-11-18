@@ -8,11 +8,13 @@
 {% block content %}
     {% if message %}
         <p>
-            {% trans 'Below is the content of the selected record item.' %}
+            {% trans 'Below is the content of the record item.' %}
         </p>
 
-        Title: {{ title }}
-        Message: {{ message }}
+        <dl>
+            <dt>{{ title }}</dt>
+            <dd>{{ message }}</dd>
+        </dl>
     {% else %}
         <p class="alert alert-danger">
             {% trans 'Unable to decrypt the message.' %}

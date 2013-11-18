@@ -7,16 +7,17 @@ from django.conf.urls import patterns, include, url
 urlpatterns = patterns("",
     url(r"^$", "phr_cli.views.index"),
 
-    url(r"^select/$", "phr_cli.views.select"),
-    url(r"^connect/$", "phr_cli.views.connect"),
-    url(r"^create/$", "phr_cli.views.create"),
+    url(r"^select/$", "phr_cli.views.records_select"),
+    url(r"^connect/$", "phr_cli.views.records_connect"),
+    url(r"^create/$", "phr_cli.views.records_create"),
+    url(r"^share/$", "phr_cli.views.records_share"),
 
-    url(r"^encrypt/$", "phr_cli.views.encrypt"),
-    url(r"^decrypt/(?P<record_item_id>\d+)/$", "phr_cli.views.decrypt"),
+    url(r"^encrypt/$", "phr_cli.views.record_items_create"),
+    url(r"^decrypt/$", "phr_cli.views.record_items_list"),
+    url(r"^decrypt/(?P<record_item_id>\d+)/$", "phr_cli.views.record_items_show"),
 
-    url(r"^share/$", "phr_cli.views.share"),
-    url(r"^grant/$", "phr_cli.views.grant"),
-    url(r"^retrieve/$", "phr_cli.views.retrieve"),
+    url(r"^grant/$", "phr_cli.views.keys_grant"),
+    url(r"^retrieve/$", "phr_cli.views.keys_retrieve"),
 
     url(r"^logout/$", "phr_cli.views.logout"),
 )

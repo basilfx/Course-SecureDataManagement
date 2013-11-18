@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Record items' %}
+{% endblock title %}
+
+{% block buttons %}
+    <a class="btn btn-primary" role="button" href="{% url 'phr_cli.views.record_items_create' %}">
+        New record item
+    </a>
+{% endblock buttons %}
+
+{% block content %}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Title</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record_item in record_items %}
+                <tr>
+                    <td>{{ record_item.id }}</td>
+                    <td>{{ record_item.category }}</td>
+                    <td>{{ record_item.title|default:"(encrypted)" }}</td>
+                    <td><a href="{% url 'phr_cli.views.record_items_show' record_item.id %}">Decrypt</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock content %}

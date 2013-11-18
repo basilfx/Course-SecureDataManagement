@@ -42,23 +42,29 @@
 
                     {% if data_file %}
                         <ul class="nav navbar-nav">
-                            <li><a href="{% url 'phr_cli.views.encrypt' %}">Add record item</a></li>
+                            <li><a href="{% url 'phr_cli.views.record_items_list' %}">Record items</a></li>
 
                             {% if data_file.record_role == "OWNER" %}
-                                <li><a href="{% url 'phr_cli.views.share' %}">Share record</a></li>
-                                <li><a href="{% url 'phr_cli.views.grant' %}">Manage access</a></li>
+                                <li><a href="{% url 'phr_cli.views.records_share' %}">Share record</a></li>
+                                <li><a href="{% url 'phr_cli.views.keys_grant' %}">Manage access</a></li>
                             {% else %}
-                                <li><a href="{% url 'phr_cli.views.retrieve' %}">Retrieve access</a></li>
+                                <li><a href="{% url 'phr_cli.views.keys_retrieve' %}">Retrieve access</a></li>
                             {% endif %}
                         </ul>
                     {% endif %}
                 </div>
-                <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav pull-right">
+                <div class="navbar-collapse collapse pull-right">
+                    {% if data_file %}
+                        <p class="navbar-text">
+                            <i class="glyphicon glyphicon-user"></i> {{ data_file.record_role }}
+                        </p>
+                    {% endif %}
+
+                    <ul class="nav navbar-nav">
                         {% if data_file %}
                             <li><a href="{% url 'phr_cli.views.logout' %}">Log out</a></li>
                         {% else %}
-                            <li><a href="{% url 'phr_cli.views.select' %}">Log in</a></li>
+                            <li><a href="{% url 'phr_cli.views.records_select' %}">Log in</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -85,9 +91,11 @@
             {% endblock notifications %}
 
             <!-- Page title -->
-            <strong>
+            <h1>
                 {% block title %}{% endblock title %}
-            </strong>
+
+                <small class="pull-right">{% block buttons %}{% endblock buttons %}</small>
+            </h1>
             <hr>
 
             <!-- Actual content -->

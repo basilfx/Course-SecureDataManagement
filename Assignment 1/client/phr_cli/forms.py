@@ -11,12 +11,16 @@ def list_data_files():
     result = []
 
     for data_file in data_files:
-        instance = DataFile(data_file)
+        instance = DataFile(data_file, load=True)
 
         if hasattr(instance, "record_id"):
             result.append((
                 data_file,
-                getattr(instance, "record_name", instance.record_id)
+                "%d - %s (%s)" % (
+                    instance.record_id,
+                    instance.record_name,
+                    instance.record_role
+                )
             ))
 
     return result

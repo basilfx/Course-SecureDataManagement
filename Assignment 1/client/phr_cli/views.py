@@ -17,14 +17,14 @@ def resolve_data_file(func):
         data_file = request.session.get("data_file", False)
 
         if not data_file:
-            return redirect("phr_cli.views.select")
+            return redirect("phr_cli.views.records_select")
 
         # Try to load file
         try:
             data_file = os.path.join(settings.ROOT_DIR, "data", data_file)
             data_file = DataFile(data_file, load=True)
         except IOError:
-            return redirect("phr_cli.views.select")
+            return redirect("phr_cli.views.records_select")
 
         # Execute actual function
         return func(request, data_file, *args, **kwargs)
@@ -33,20 +33,10 @@ def resolve_data_file(func):
 
 @resolve_data_file
 def index(request, data_file):
-    record_item_ids = actions.list_record_items(data_file)
-    record_items = actions.get_record_items(data_file, record_item_ids)
-    instance = data_file.get_protocol()
-
-    for record_item in record_items:
-        data = actions.decrypt(data_file, record_item=record_item)
-
-        if data:
-            record_item["title"] = json.loads(data)[0]
-
     return render(request, "index.html", locals())
 
 @resolve_data_file
-def share(request, data_file):
+def records_share(request, data_file):
     secret_keys = []
     instance = data_file.get_protocol()
 
@@ -60,10 +50,10 @@ def share(request, data_file):
             "data": data
         })
 
-    return render(request, "share.html", locals())
+    return render(request, "records_share.html", locals())
 
 @resolve_data_file
-def encrypt(request, data_file):
+def record_items_create(request, data_file):
     form = EncryptForm(
         list(data_file.public_keys.iterkeys()),
         data_file.parties,
@@ -71,13 +61,13 @@ def encrypt(request, data_file):
     )
 
     if request.method == "POST" and form.is_valid():
+        # Simple JSON used as container
         data = json.dumps([
             form.cleaned_data["title"],
             form.cleaned_data["message"]
         ])
 
-        print form.cleaned_data["category"], form.cleaned_data["parties"]
-
+        # Encrypt the data
         actions.encrypt(
             data_file,
             form.cleaned_data["category"],
@@ -85,12 +75,27 @@ def encrypt(request, data_file):
             data,
         )
 
-        return redirect("phr_cli.views.index")
+        # Return to record list overview
+        return redirect("phr_cli.views.record_items_list")
 
-    return render(request, "encrypt.html", locals())
+    return render(request, "record_items_create.html", locals())
 
 @resolve_data_file
-def decrypt(request, data_file, record_item_id):
+def record_items_list(request, data_file):
+    record_item_ids = actions.list_record_items(data_file)
+    record_items = actions.get_record_items(data_file, record_item_ids)
+    instance = data_file.get_protocol()
+
+    for record_item in record_items:
+        data = actions.decrypt(data_file, record_item=record_item)
+
+        if data:
+            record_item["title"] = json.loads(data)[0]
+
+    return render(request, "record_items_list.html", locals())
+
+@resolve_data_file
+def record_items_show(request, data_file, record_item_id):
     data = actions.decrypt(data_file, record_item_id)
 
     if data:
@@ -98,10 +103,10 @@ def decrypt(request, data_file, record_item_id):
         title = data[0]
         message = data[1]
 
-    return render(request, "decrypt.html", locals())
+    return render(request, "record_items_show.html", locals())
 
 @resolve_data_file
-def grant(request, data_file):
+def keys_grant(request, data_file):
     form = GrantForm(
         list(data_file.public_keys.iterkeys()),
         data_file.parties,
@@ -111,21 +116,23 @@ def grant(request, data_file):
     if request.method == "POST" and form.is_valid():
         pass
 
-    return render(request, "grant.html", locals())
+    return render(request, "keys_grant.html", locals())
 
 @resolve_data_file
-def retrieve(request, data_file):
+def keys_retrieve(request, data_file):
     pass
 
-def select(request):
+def records_select(request):
     form = SelectDataFileForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
         request.session["data_file"] = form.cleaned_data["data_file"]
 
-    return render(request, "select.html", locals())
+        return redirect("phr_cli.views.index")
 
-def create(request):
+    return render(request, "records_select.html", locals())
+
+def records_create(request):
     form = CreatePHRForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -147,9 +154,9 @@ def create(request):
         request.session["data_file"] = form.cleaned_data["data_file"]
         return redirect("phr_cli.views.index")
 
-    return render(request, "create.html", locals())
+    return render(request, "records_create.html", locals())
 
-def connect(request):
+def records_connect(request):
     form = ConnectPHRForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -171,11 +178,11 @@ def connect(request):
         request.session["data_file"] = form.cleaned_data["data_file"]
         return redirect("phr_cli.views.index")
 
-    return render(request, "connect.html", locals())
+    return render(request, "records_connect.html", locals())
 
 def logout(request):
     # Destroy session
     request.session.flush()
 
     # Back to select form
-    return redirect("phr_cli.views.select")
+    return redirect("phr_cli.views.records_select")

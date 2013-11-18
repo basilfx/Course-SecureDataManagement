@@ -7,35 +7,28 @@
 
 {% block content %}
 
-    <h2>Record details</h2>
+    <h3>Server</h3>
 
     <ul>
-        <li>Record ID: {{ data_file.record_id }}</li>
-        <li>Record Name: {{ data_file.record_name }}</li>
-        <li>Record Role: {{ data_file.record_role }}</li>
+        <li>Host: {{ data_file.host }}</li>
+        <li>Categories: {{ data_file.categories|join:", " }}</li>
+        <li>Parties: {{ data_file.parties|join:", " }}</li>
     </ul>
 
-    <h2>Record items</h2>
+    <h3>Record</h3>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Category</th>
-                <th>Title</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record_item in record_items %}
-                <tr>
-                    <td>{{ record_item.id }}</td>
-                    <td>{{ record_item.category }}</td>
-                    <td>{{ record_item.title|default:"(encrypted)" }}</td>
-                    <td><a href="{% url 'phr_cli.views.decrypt' record_item.id %}">Decrypt</a></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <ul>
+        <li>ID: {{ data_file.record_id }}</li>
+        <li>Name: {{ data_file.record_name }}</li>
+        <li>Role: {{ data_file.record_role }}</li>
+    </ul>
+
+    <h3>Keys</h3>
+
+    <ul>
+        <li>Master keys: {{ data_file.master_keys|length }}</li>
+        <li>Public keys: {{ data_file.public_keys|length }}</li>
+        <li>Secret keys: {{ data_file.secret_keys|length }}</li>
+    </ul>
 
 {% endblock content %}

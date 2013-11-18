@@ -18,6 +18,14 @@
         <input type="submit" value="{% trans 'Select' %}">
     </form>
 
-    <a href="{% url 'phr_cli.views.create' %}">{% trans 'Create a new PHR record' %}</a>
-    <a href="{% url 'phr_cli.views.connect' %}">{% trans 'Connect to a PHR record' %}</a>
+    <p>
+        {% trans 'New here?' %}
+    </p>
+
+    <a href="{% url 'phr_cli.views.records_create' %}" class="btn btn-primary" role="button">
+        {% trans 'Create a new PHR record' %}
+    </a>
+    <a href="{% url 'phr_cli.views.records_connect' %}" class="btn btn-primary" role="button">
+        {% trans 'Connect to a PHR record' %}
+    </a>
 {% endblock content %}

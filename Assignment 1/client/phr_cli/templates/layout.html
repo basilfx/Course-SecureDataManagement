@@ -38,20 +38,28 @@
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="icon-toggle"></span>
                     </button>
-                    <a class="navbar-brand" href="#">PHR Demo</a>
+                    <a class="navbar-brand" href="{% url 'phr_cli.views.index' %}">PHR Demo</a>
+
+                    {% if data_file %}
+                        <ul class="nav navbar-nav">
+                            <li><a href="{% url 'phr_cli.views.encrypt' %}">Add record item</a></li>
+
+                            {% if data_file.record_role == "OWNER" %}
+                                <li><a href="{% url 'phr_cli.views.share' %}">Share record</a></li>
+                                <li><a href="{% url 'phr_cli.views.grant' %}">Manage access</a></li>
+                            {% else %}
+                                <li><a href="{% url 'phr_cli.views.retrieve' %}">Retrieve access</a></li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav pull-right">
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#">
-                                <strong>Admin</strong> <span class="caret"></span>
-                            </a>
-
-                            <ul id="g-account-menu" class="dropdown-menu" role="menu">
-                                <li><a href="#">My Profile</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="#">Log out</a></li>
+                        {% if data_file %}
+                            <li><a href="{% url 'phr_cli.views.logout' %}">Log out</a></li>
+                        {% else %}
+                            <li><a href="{% url 'phr_cli.views.select' %}">Log in</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

@@ -2,23 +2,18 @@ from phr_cli.protocol import DecryptError, KeyRingError
 
 import jsonrpclib
 
-def connect(storage, host):
-    # Retrieve the server data
+def create(storage, host, record_name):
+    # Create a new record on the server
     api = jsonrpclib.Server(host)
 
     # Retrieve server settings
     storage.categories = api.get_categories()
     storage.parties = api.get_parties()
     storage.mappings = api.get_mappings()
-
-    # Add host
     storage.host = host
 
-def create(storage, record_name):
-    # Create a new record on the server
-    api = jsonrpclib.Server(storage.host)
-
-    storage.record_id = api.add_record(name)
+    # Add record information
+    storage.record_id = api.add_record(record_name)
     storage.record_name = record_name
     storage.record_role = "OWNER"
 
@@ -31,29 +26,49 @@ def create(storage, record_name):
     storage.master_keys, storage.public_keys = instance.setup()
     storage.secret_keys = instance.keygen(storage.master_keys, storage.public_keys)
 
-    # Write secret keys to screen
-    output = []
+    # Done
+    return storage.record_id
 
-    for party, keys in storage.secret_keys.iteritems():
-        # Store record ID with the key, so the other knows the record we are
-        # talking about
-        data = instance.keys_to_base64((storage.host, storage.record_id, keys))
+def connect(storage, host, key_data):
+    # Connect to remote server
+    api = jsonrpclib.Server(host)
 
-        output.append(
-            "BEGIN SECRET READ FOR KEYS %s\n%s\nEND SECRET READ KEYS FOR %s" % (
-                party, data, party
-            )
-        )
+    # Retrieve server settings
+    storage.categories = api.get_categories()
+    storage.parties = api.get_parties()
+    storage.mappings = api.get_mappings()
+    storage.host = host
+
+    # Unpack the key
+    instance = storage.get_protocol()
+    record_id, record_role, secret_keys = instance.base64_to_keys(key_data)
+
+    # Verify if record exists
+    api = jsonrpclib.Server(storage.host)
+    record = api.get_record(record_id)
+
+    if not record:
+        raise ValueError("Unable to retrieve record from server")
+
+    if not record["id"] == record_id:
+        raise ValueError("Record ID mismatch")
+
+    # Record exists, set properties
+    storage.record_id = record["id"]
+    storage.record_name = record["name"]
+    storage.record_role = record_role
+    storage.secret_keys = { record_role: secret_keys }
 
     # Done
-    return output
+    return record["id"]
 
-def decrypt(storage, record_item_id):
+def decrypt(storage, record_item_id=None, record_item=None):
     instance = storage.get_protocol()
 
     # Query the server for any keys
-    api = jsonrpclib.Server(storage.host)
-    record_item = api.get_record_item(storage.record_id, record_item_id)
+    if not record_item_id is None:
+        api = jsonrpclib.Server(storage.host)
+        record_item = api.get_record_item(storage.record_id, record_item_id)
 
     # Try to decrypt the key
     success = False
@@ -105,34 +120,7 @@ def grant(storage, category, parties):
     # Done
     return key_id
 
-def import_key(storage, key_data):
-    instance = storage.get_protocol()
-
-    # Unpack the key
-    host, record_id, secret_keys = instance.base64_to_keys(data)
-
-    # Conenct to PHR
-    connect(storage, host)
-
-    # Verify if record exists
-    api = jsonrpclib.Server(storage.host)
-    record = api.get_record(data[0])
-
-    if not record:
-        raise ValueError("Unable to retrieve record from server")
-
-    if not record["id"] == data[0]:
-        raise ValueError("Record ID mismatch")
-
-    # Record exists, set properties
-    storage.record_id = record["id"]
-    storage.record_name = record["name"]
-    storage.secret_keys = secret_keys
-
-    # Done
-    return record["id"]
-
-def retrieve_key(storage, category):
+def retrieve(storage, category):
     instance = storage.get_protocol()
 
     # Query the server for any keys
@@ -174,9 +162,16 @@ def retrieve_key(storage, category):
         # category.
         return True
 
+def get_record_items(storage, record_item_ids):
+    api = jsonrpclib.Server(storage.host)
+    return [ api.get_record_item(storage.record_id, x) for x in record_item_ids ]
+
 def list_record_items(storage, **lookups):
     api = jsonrpclib.Server(storage.host)
     record_item_ids = api.find_record_items(storage.record_id, lookups)
+    print record_item_ids
 
-    if not record_item_ids:
+    if record_item_ids == False:
         raise ValueError("Unable to retrieve record from server")
+
+    return record_item_ids

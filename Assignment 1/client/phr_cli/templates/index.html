@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Index' %}
+{% endblock title %}
+
+{% block content %}
+
+    <h2>Record details</h2>
+
+    <ul>
+        <li>Record ID: {{ data_file.record_id }}</li>
+        <li>Record Name: {{ data_file.record_name }}</li>
+        <li>Record Role: {{ data_file.record_role }}</li>
+    </ul>
+
+    <h2>Record items</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Title</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record_item in record_items %}
+                <tr>
+                    <td>{{ record_item.id }}</td>
+                    <td>{{ record_item.category }}</td>
+                    <td>{{ record_item.title|default:"(encrypted)" }}</td>
+                    <td><a href="{% url 'phr_cli.views.decrypt' record_item.id %}">Decrypt</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock content %}

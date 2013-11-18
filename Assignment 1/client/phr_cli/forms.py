@@ -26,10 +26,40 @@ class SelectDataFileForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(SelectDataFileForm, self).__init__(*args, **kwargs)
-
-        # Set choices
         self.fields["data_file"].choices = list_data_files()
 
 class ConnectPHRForm(forms.Form):
-    host = forms.URLField(required=True)
+    host = forms.URLField()
+    key_data = forms.CharField(max_length=1024*1024)
+
     data_file = forms.CharField(max_length=128)
+
+class CreatePHRForm(forms.Form):
+    host = forms.URLField()
+    record_name = forms.CharField(max_length=128)
+
+    data_file = forms.CharField(max_length=128)
+
+class EncryptForm(forms.Form):
+    category = forms.ChoiceField()
+    parties = forms.MultipleChoiceField()
+
+    title = forms.CharField(max_length=128)
+    message = forms.CharField(max_length=1024*1024)
+
+    def __init__(self, categories, parties, *args, **kwargs):
+        super(EncryptForm, self).__init__(*args, **kwargs)
+
+        self.fields["category"].choices = zip(categories, categories)
+        self.fields["parties"].choices = zip(parties, parties)
+
+class GrantForm(forms.Form):
+    category = forms.ChoiceField()
+    parties = forms.MultipleChoiceField()
+    access = forms.ChoiceField(choices=(("R", "READ"), ("W", "WRITE")))
+
+    def __init__(self, categories, parties, *args, **kwargs):
+        super(GrantForm, self).__init__(*args, **kwargs)
+
+        self.fields["category"].choices = zip(categories, categories)
+        self.fields["parties"].choices = zip(parties, parties)

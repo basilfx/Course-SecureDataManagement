@@ -7,7 +7,7 @@
 
 {% block content %}
     <p>
-        {% trans 'Select a data file to work with, or connect to a server to create a new one.' %}
+        {% trans 'Select a data file to work with.' %}
     </p>
 
     <form method="POST">
@@ -18,5 +18,6 @@
         <input type="submit" value="{% trans 'Select' %}">
     </form>
 
-    <a href="{% url 'phr_cli.views.phr_connect' %}">{% trans 'Connect to PHR server' %}</a>
+    <a href="{% url 'phr_cli.views.create' %}">{% trans 'Create a new PHR record' %}</a>
+    <a href="{% url 'phr_cli.views.connect' %}">{% trans 'Connect to a PHR record' %}</a>
 {% endblock content %}

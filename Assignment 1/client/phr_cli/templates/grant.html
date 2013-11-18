@@ -2,19 +2,19 @@
 {% load i18n %}
 
 {% block title %}
-    {% trans 'Create PHR record' %}
+    {% trans 'Grant access' %}
 {% endblock title %}
 
 {% block content %}
     <p>
-        {% trans 'Please enter the PHR server address and a record name' %}
+        {% trans 'Select below which parties you want to grant access to.' %}
     </p>
 
     <form method="POST">
         {% csrf_token %}
 
-        {{ form }}
+        {{ form.as_p }}
 
-        <input type="submit" value="{% trans 'Create' %}">
+        <input type="submit" value="{% trans 'Grant' %}">
     </form>
 {% endblock content %}

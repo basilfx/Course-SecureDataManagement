@@ -7,14 +7,14 @@
 
 {% block content %}
     <p>
-        {% trans 'Please enter the PHR server address and a record name' %}
+        {% trans 'Enter the form below and submit to encrypt and upload the data to the PHR record.' %}
     </p>
 
     <form method="POST">
         {% csrf_token %}
 
-        {{ form }}
+        {{ form.as_p }}
 
-        <input type="submit" value="{% trans 'Create' %}">
+        <input type="submit" value="{% trans 'Encrypt' %}">
     </form>
 {% endblock content %}

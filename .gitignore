@@ -1,4 +1,6 @@
 # Project files
+*/*/*/static/bower_components/
+*/*/*.db
 */*/data/
 */*/static/
 */*/media/

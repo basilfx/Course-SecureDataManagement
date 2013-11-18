@@ -17,10 +17,7 @@ class Command(BaseCommand):
         storage = DataFile(storage_file, load=True)
 
         try:
-            # Connect
             actions.connect(storage, host)
-
-            # Create
             secret_keys = actions.create(storage, record_name)
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
@@ -28,6 +25,19 @@ class Command(BaseCommand):
             raise CommandError(e)
 
         # Print keys
+        output = []
+
+        for party, keys in storage.secret_keys.iteritems():
+            # Store record ID with the key, so the other knows the record we are
+            # talking about
+            data = instance.keys_to_base64((storage.record_id, party, keys))
+
+            output.append(
+                "BEGIN SECRET READ FOR KEYS %s\n%s\nEND SECRET READ KEYS FOR %s" % (
+                    party, data, party
+                )
+            )
+
         self.stdout.write("\n\n".join(output))
 
         # Write output data

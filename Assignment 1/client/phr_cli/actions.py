@@ -102,6 +102,9 @@ def encrypt(storage, category, parties, message):
     if not record_item_id:
         raise ValueError("Failed uploading record item")
 
+    # Done
+    return record_item_id
+
 def grant(storage, category, parties):
     instance = storage.get_protocol()
 

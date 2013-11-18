@@ -1,6 +1,10 @@
 from django import forms
 from django.conf import settings
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
+from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
+
 from phr_cli.data_file import DataFile
 
 import os
@@ -46,10 +50,24 @@ class CreatePHRForm(forms.Form):
 
 class EncryptForm(forms.Form):
     category = forms.ChoiceField()
-    parties = forms.MultipleChoiceField()
+    parties = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,)
 
     title = forms.CharField(max_length=128)
-    message = forms.CharField(max_length=1024*1024)
+    message = forms.CharField(max_length=1024*1024, widget=forms.Textarea())
+
+    helper = FormHelper()
+    helper.form_class = "form-group"
+    helper.layout = Layout(
+        Field("category"),
+        Field("parties"),
+        Field("title"),
+        Field("message"),
+
+        FormActions(
+            Submit('submit', 'Create', css_class="btn-primary"),
+            Submit('cancel', 'Cancel'),
+        )
+    )
 
     def __init__(self, categories, parties, *args, **kwargs):
         super(EncryptForm, self).__init__(*args, **kwargs)
@@ -59,8 +77,21 @@ class EncryptForm(forms.Form):
 
 class GrantForm(forms.Form):
     category = forms.ChoiceField()
-    parties = forms.MultipleChoiceField()
+    parties = forms.MultipleChoiceField(widget = forms.CheckboxSelectMultiple)
     access = forms.ChoiceField(choices=(("R", "READ"), ("W", "WRITE")))
+
+    helper = FormHelper()
+    helper.form_class = "form-group"
+    helper.layout = Layout(
+        Field("category"),
+        Field("parties"),
+        Field("access"),
+
+        FormActions(
+            Submit('submit', 'Create', css_class="btn-primary"),
+            Submit('cancel', 'Cancel'),
+        )
+    )
 
     def __init__(self, categories, parties, *args, **kwargs):
         super(GrantForm, self).__init__(*args, **kwargs)

@@ -46,7 +46,7 @@
 
                             {% if data_file.record_role == "OWNER" %}
                                 <li><a href="{% url 'phr_cli.views.records_share' %}">Share record</a></li>
-                                <li><a href="{% url 'phr_cli.views.keys_grant' %}">Manage access</a></li>
+                                <li><a href="{% url 'phr_cli.views.keys_grant' %}">Grant access</a></li>
                             {% else %}
                                 <li><a href="{% url 'phr_cli.views.keys_retrieve' %}">Retrieve access</a></li>
                             {% endif %}
@@ -76,16 +76,33 @@
                 <!-- Notification header -->
 
                 {% if messages %}
-                    <div class="notifications center top"></div>
+                    <div class="notifications center top alert alert-info"></div>
 
                     <script type="text/javascript">
-                        {% for message in messages %}
-                            $(document).ready(function() {
-                                $('.notifications.center.top').notify({
-                                    message: { text: '{{ message }}' },
-                                }).show();
-                            });
-                        {% endfor %}
+                        $(document).ready(function() {
+                            var index = 0;
+                            var messages = [
+                                {% for message in messages %}
+                                    "{{ message }}",
+                                {% endfor %}
+                            ];
+
+                            function show(index) {
+                                if (index < messages.length) {
+                                    $(".notifications").text(messages[index])
+                                                       .show()
+                                                       .delay(2500)
+                                                       .hide({
+                                                            complete: function() {
+                                                                show(index + 1);
+                                                            }
+                                                       })
+                                }
+                            }
+
+                            // Show first one
+                            show(0);
+                        });
                     </script>
                 {% endif %}
             {% endblock notifications %}

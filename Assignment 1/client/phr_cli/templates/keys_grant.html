@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}
     {% trans 'Grant access' %}
@@ -10,11 +10,5 @@
         {% trans 'Select below which parties you want to grant access to.' %}
     </p>
 
-    <form method="POST">
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <input type="submit" value="{% trans 'Grant' %}">
-    </form>
+    {% crispy form %}
 {% endblock content %}

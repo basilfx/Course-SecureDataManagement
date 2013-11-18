@@ -1,8 +1,8 @@
 {% extends 'layout.html' %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}
-    {% trans 'Create PHR record' %}
+    {% trans 'Create record item' %}
 {% endblock title %}
 
 {% block content %}
@@ -10,11 +10,5 @@
         {% trans 'Enter the form below and submit to encrypt and upload the data to the PHR record.' %}
     </p>
 
-    <form method="POST">
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <input type="submit" value="{% trans 'Encrypt' %}">
-    </form>
+    {% crispy form %}
 {% endblock content %}

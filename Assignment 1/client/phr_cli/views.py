@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.conf import settings
 
 from phr_cli import actions
@@ -68,12 +69,18 @@ def record_items_create(request, data_file):
         ])
 
         # Encrypt the data
-        actions.encrypt(
+        record_item_id = actions.encrypt(
             data_file,
             form.cleaned_data["category"],
             form.cleaned_data["parties"],
             data,
         )
+
+        # Add notification
+        if record_item_id:
+            messages.info(request, "Record item added with ID %d" % record_item_id)
+        else:
+            messages.error(request, "Could not add record item")
 
         # Return to record list overview
         return redirect("phr_cli.views.record_items_list")
@@ -127,6 +134,7 @@ def records_select(request):
 
     if request.method == "POST" and form.is_valid():
         request.session["data_file"] = form.cleaned_data["data_file"]
+        messages.info(request, "Welcome back!")
 
         return redirect("phr_cli.views.index")
 

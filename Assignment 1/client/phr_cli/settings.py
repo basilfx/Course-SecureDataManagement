@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'phr_cli',
 
     # Third-party
+    'crispy_forms',
     'django_extensions',
     'djangobower'
 )
@@ -150,6 +151,9 @@ BOWER_INSTALLED_APPS = (
     'lesscss',
     'jquery',
 )
+
+# Crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

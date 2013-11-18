@@ -1,4 +1,4 @@
-var paySafeControllers = angular.module('paySafeControllers', []);
+var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
 paySafeControllers.controller('TransactionListCtrl', ['$scope',
 	function($scope) {

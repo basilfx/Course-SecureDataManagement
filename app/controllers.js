@@ -46,67 +46,28 @@ paySafeControllers.controller('TransactionShowCtrl', ['$scope', '$routeParams',
 
 paySafeControllers.controller('TransactionSearchCtrl', ['$scope',
 	function($scope) {
-		amount_mapping = [];
-		var functions = {
-			"amount": {
-				"greater": function(amount){
-					var temp = (amount - (amount % 1000))/1000;
-					var result = "" + temp;
-					for (i = temp+1; i < 10; i++){
-						result = result + "," + i;
-					}
-					return result;
-				},
-				"equal": function(amount){
-					return (amount - (amount % 1000))/1000;
-				},
-				"less": function(amount){
-					var temp = (amount - (amount % 1000))/1000;
-					var result = "" + temp;
-					for (i = temp-1; i > -1; i--){
-						result = result + "," + i;
-					}
-					return result;
-				}
-			},
-			"date": {
-				"greater": function(amount){
-					var temp = (amount - (amount % 1000))/1000;
-					var result = "" + temp;
-					for (i = temp+1; i < 10; i++){
-						result = result + "," + i;
-					}
-					return result;
-				},
-				"equal": function(amount){
-					return (amount - (amount % 1000))/1000;
-				},
-				"less": function(amount){
-					var temp = (amount - (amount % 1000))/1000;
-					var result = "" + temp;
-					for (i = temp-1; i > -1; i--){
-						result = result + "," + i;
-					}
-					return result;
+		$scope.search_form = search_form;
+		$scope.search_form.amount.operation = $scope.search_form.amount.operations[0];
+		$scope.search_form.date.operation = $scope.search_form.date.operations[0];
+		amount_bucket.min = amount_bucket.bucket_list[0];
+		amount_bucket.max = amount_bucket.bucket_list[amount_bucket.bucket_list.length -1];
+		date_bucket.min = date_bucket.bucket_list[0];
+		date_bucket.max = date_bucket.bucket_list[date_bucket.bucket_list.length -1];
+
+		$scope.search_url = "";
+		$scope.search = function() {
+			$scope.search_url = $scope.search_form.generate_url();
+			
+			var new_transactions = []; //TODO: Get results and store them in this variable
+			$scope.transactions = [];
+			for (var transaction in new_transactions){
+				if ($scope.search_form.is_valid_result(transaction)){
+					$scope.tranactions.push(tranaction);
 				}
 			}
-		}
-		$scope.field = "amount";
-		$scope.operation = "equal";
-		$scope.show_table = false;
-		$scope.query = function() {
-			var query=$scope.field + "=" + functions[$scope.field][$scope.operation]($scope.search_field);
-			window.alert(query);
-			$scope.show_table = true;
-		}
-		//Query server
-		//Decrypt data
-		//$scope.transaction = decrypted data
 
-		$scope.transactions = [
-			{ id: "1", sender: "Hou", receiver: "Hallow", amount: 3, description: "Oke"},
-			{ id: "2", sender: "Hoi", receiver: "Hallow!", amount: 5, description: "Goed"},
-		];
+			$scope.show_table = true;
+		};
 	}
 ]);
 

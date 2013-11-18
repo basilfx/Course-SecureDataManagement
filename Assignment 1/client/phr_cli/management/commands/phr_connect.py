@@ -1,69 +1,32 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
 
-from charm.toolbox.pairinggroup import PairingGroup
-from charm.core.engine.util import objectToBytes
-from charm.schemes.abenc import abenc_lsw08
+from phr_cli.utils import unpack_arguments
+from phr_cli.data_file import DataFile
 
 import jsonrpclib
-import json
-import os
 
 class Command(BaseCommand):
-    args = "<host> <data_file>"
-    help = "Initialize connection"
+    help = "Initialize connection and retrieve remote parameters"
+    args = "<host> <storage_file>"
 
     def handle(self, *args, **options):
-        host, data_file = self.parse_args(args)
+        host, storage_file = unpack_arguments(args, [str, str])
 
-        # Connect to server
+        # Open data file
+        storage = DataFile(storage_file)
+
+        # Retrieve the server data
         api = jsonrpclib.Server(host)
-        attributes = api.system.get_attributes()
-        categories = api.system.get_categories()
 
-        # Make data
-        data = {
-            "connection": {
-                "host": host,
-                "attributes": attributes,
-                "categories": categories
-            }
-        }
-
-        # Save to file
-        json.dump(data, open(data_file, "w"))
-
-        # Done
-        self.stdout.write("Written data to '%s'\n" % data_file)
-
-        return
-
-        # Instantize encryption
-        group = PairingGroup("MNT224")
-        abe = abenc_lsw08.KPabe(group)
-
-        # Generate public key and master key
-        pk, mk = abe.setup()
-
-        # Dump to JSON
-        pk = objectToBytes(pk, group)
-        mk = objectToBytes(mk, group)
-
-        self.stdout.write("PK = %s\nMK = %s" % (pk, mk))
-
-    def parse_args(self, args):
-        # Check if host is given
         try:
-            host = args[0]
-        except:
-            raise CommandError("Missing host")
+            storage.categories = api.get_categories()
+            storage.parties = api.get_parties()
+            storage.mappings = api.get_mappings()
+        except jsonrpclib.ProtocolError:
+            raise CommandError("Unable to communicate to remote server")
 
-        # Check if file is given
-        try:
-            data_file = args[1]
-        except:
-            raise CommandError("Missing data file")
+        # Add host
+        storage.host = host
 
-        # Done
-        return host, data_file
-
+        # Write output data
+        storage.save()

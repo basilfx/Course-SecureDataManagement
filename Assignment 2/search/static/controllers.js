@@ -144,6 +144,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 ]);
 paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
+		console.log("register");
 		$scope.user = { username: "", password: ""};
 		$scope.successdata = "";
 		$scope.errordata = "";

@@ -101,6 +101,25 @@ def get_key(request, record_id, key_id):
     except Key.DoesNotExist:
         return False
 
+@jsonrpc_method("get_record")
+def get_record(request, record_id):
+    """
+    Retrieve a specific record from the database.
+
+    @param record_id ID of the record
+    @return Record if matched, else False
+    """
+
+    try:
+        instance = Record.objects.get(pk=record_id)
+
+        return {
+            "id": instance.pk,
+            "name": instance.name
+        }
+    except Record.DoesNotExist:
+        return False
+
 @jsonrpc_method("get_record_item")
 def get_record_item(request, record_id, record_item_id):
     """

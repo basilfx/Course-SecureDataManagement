@@ -1,11 +1,8 @@
 # Project files
-*/*/settings/local.py
-*/static/
-*/media/
+*/*/data/
+*/*/static/
+*/*/media/
 *.py[cod]
-
-# C extensions
-*.so
 
 #databases
 *.sqlite3

@@ -1,9 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 
+from phr_cli import actions
 from phr_cli.utils import unpack_arguments, str_upper, str_upper_split
 from phr_cli.data_file import DataFile
 
-import jsonrpclib
+import jsonrpclibs
 
 class Command(BaseCommand):
     help = "Encrypt a message of a given category for certain parties"
@@ -15,18 +16,14 @@ class Command(BaseCommand):
 
         # Open data file
         storage = DataFile(storage_file, load=True)
-        instance = storage.get_protocol()
 
-        # Encrypt
-        data = instance.encrypt(message, storage.public_keys, category, parties)
-
-        # Upload to server
-        api = jsonrpclib.Server(storage.host)
-        record_item_id = api.add_record_item(storage.record_id, category, data)
-
-        if not record_item_id:
-            self.stdout.write("Failed uploading record item")
-            return
+        # Encrypt data
+        try:
+            record_item_id = actions.encrypt(storage, category, parties, message)
+        except jsonrpclib.ProtocolError:
+            raise CommandError("Unable to communicate to remote server")
+        except ValueError:
+            raise CommandError(e)
 
         # Done
         self.stdout.write("Uploaded to record item ID %d" % record_item_id)

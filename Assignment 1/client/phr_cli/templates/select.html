@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Select data file.' %}
+{% endblock title %}
+
+{% block content %}
+    <p>
+        {% trans 'Select a data file to work with, or connect to a server to create a new one.' %}
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form }}
+
+        <input type="submit" value="{% trans 'Select' %}">
+    </form>
+
+    <a href="{% url 'phr_cli.views.phr_connect' %}">{% trans 'Connect to PHR server' %}</a>
+{% endblock content %}

@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'search',
     'django_extensions',
     'bootstrapform',
+    'djangular',
 )
 
 MIDDLEWARE_CLASSES = (

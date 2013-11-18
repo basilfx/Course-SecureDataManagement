@@ -4,6 +4,8 @@ from search.models import *
 from search.forms import *
 from django.contrib.auth import authenticate, login, forms, logout
 import json
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 from django.http import HttpResponse
@@ -130,38 +132,92 @@ def transaction_search(request, query):
     else:
         return redirect('search.views.client_login')
 
+def bla(request):
+    if request.user.is_authenticated():
+        user = request.user
+        client = Client.objects.get(user=user)
+        transactions = Transaction.objects.filter(client_bucket=client.client_bucket)
+        data = []
+        for transaction in transactions:
+            data.append(model_to_dict(transaction, fields=["id", "data"]))
+        data = json.dumps(data, indent=4)
 
+        return HttpResponse(data,mimetype='application/json')
+    else:
+        data = {"login_successful": False};
+        data = json.dumps(data, indent=4)
+        return HttpResponse(data,mimetype='application/json')
 
-def test(request):
-    data1 = {
-        "abc": [1, 2, 3],
-        "deeper": {
-            "nested": {
-                "is": "cool"
-            }
-        }
-    }
+@csrf_exempt
+def blalogin(request):
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            client = Client.objects.get(user=user) 
+            client_bucket = client.client_bucket
+            data = {"login_successful": True};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+        else:
+            data = {"login_successful": False};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+    else:
+        data = {"login_successful": False};
+        data = json.dumps(data, indent=4)
+        return HttpResponse(data,mimetype='application/json')
 
-    data2 = []
+@csrf_exempt
+def blacreatetransaction(request):
+    if request.user.is_authenticated():
+        user = request.user
+        client = Client.objects.get(user=user)
+        client_bucket = client.client_bucket
+        id = request.POST.__getitem__('id')
+        data = request.POST.__getitem__('data')
+        amount_bucket = request.POST.__getitem__('amount_bucket')
+        date_bucket = request.POST.__getitem__('date_bucket')
+        if (id == "-1"):
+            t = Transaction(data=data, amount_bucket=amount_bucket,miliseconds_bucket=date_bucket,client_bucket=client_bucket)
+            t.save()
+            data = {"message": "Transaction created"};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+        else:
+            t = Transaction.objects.get(id=int(id), client_bucket=client_bucket)
+            t.data = data
+            t.amount_bucket = amount_bucket
+            t.date_bucket = date_bucket
+            t.save()
+            data = {"message": "Transaction updated"};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+    else:
+        data = {"login_successful": False};
+        data = json.dumps(data, indent=4)
+        return HttpResponse(data,mimetype='application/json')
 
-    for transaction in Transaction.objects.all():
-        data2.append(model_to_dict(transaction, fields=["id", "sender", "receiver", "amount"]))
-
-    data1 = json.dumps(data1, indent=4)
-    data2 = json.dumps(data2, indent=4)
-
-    form_normal = TransactionForm()
-    form_hidden = HiddenForm()
-
-    if request.method == "POST" and form_hidden.is_valid():
-        data = form_hidden.cleaned_data["data"]
-        print data
-        data = json.loads(data)
-        print data
-
-        data["bucket"]
-
-        data = {"a": 1, "b": 2}
-
-        Transaction(**data).save()
-    return render(request, "test.html", locals())
+@csrf_exempt
+def bladeletetransaction(request):
+    if request.user.is_authenticated():
+        user = request.user
+        client = Client.objects.get(user=user)
+        client_bucket = client.client_bucket
+        id = request.POST.__getitem__('id')
+        if (id != "-1"):
+            t = Transaction.objects.get(id=int(id),client_bucket=client_bucket)
+            t.delete()
+            data = {"message": "Transaction deleted"};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+        else:
+            data = {"message": "Transaction not deleted"};
+            data = json.dumps(data, indent=4)
+            return HttpResponse(data,mimetype='application/json')
+    else:
+        data = {"login_successful": False};
+        data = json.dumps(data, indent=4)
+        return HttpResponse(data,mimetype='application/json')

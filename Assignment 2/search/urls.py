@@ -15,4 +15,9 @@ urlpatterns = patterns('',
     url(r'^client/$', views.client_index),
     url(r'^logout/$', views.client_logout),
     url(r'^search/(?P<query>.+)$', views.transaction_search),
+
+    url(r'^bla/$', views.bla),
+    url(r'^blalogin/$', views.blalogin),
+    url(r'^blacreatetransaction/$', views.blacreatetransaction),
+    url(r'^bladeletetransaction/$', views.bladeletetransaction),
 )

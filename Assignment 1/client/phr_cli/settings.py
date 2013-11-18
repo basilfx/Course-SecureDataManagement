@@ -84,6 +84,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -138,6 +139,16 @@ INSTALLED_APPS = (
 
     # Third-party
     'django_extensions',
+    'djangobower'
+)
+
+# Bower related
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, 'static/')
+
+BOWER_INSTALLED_APPS = (
+    'bootstrap',
+    'lesscss',
+    'jquery',
 )
 
 # A sample logging configuration. The only tangible logging

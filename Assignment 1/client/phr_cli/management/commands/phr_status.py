@@ -39,6 +39,9 @@ class Command(BaseCommand):
             "Mappings:    %s" % join_attribute_keys("mappings"),
             "",
             "Record ID:   %s" % join("record_id"),
+            "Record name: %s" % join("record_name"),
+            "Record role: %s" % join("record_role"),
+            "",
             "Master keys: %s" % join_attribute("master_keys"),
             "Public keys: %s" % join_attribute("public_keys"),
             "Secret keys: %s" % join_attribute_keys("secret_keys", unfold=True)

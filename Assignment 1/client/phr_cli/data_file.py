@@ -19,6 +19,8 @@ class DataFile(object):
 
             # Record related
             ("record_id", int, None),
+            ("record_name", basestring, None),
+            ("record_role", basestring, None),
 
             # Key related
             ("master_keys", dict, "key"),

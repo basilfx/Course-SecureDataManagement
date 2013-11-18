@@ -1,3 +1,5 @@
+<h1>Transactions</h1>
+
 <table class="table table-striped" style="table-layout: fixed;">
 	<thead>
 		<tr>
@@ -5,7 +7,7 @@
 			<th>Receiver</th>
 			<th>Amount</th>
 			<th>Description</th>
-			<th>Edit</th>
+			<th>Actions</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -29,6 +31,7 @@
 			<td>
 				<div ng-show="!t.editMode">
 					<button class="btn btn-xs btn-default" ng-click="t.editMode = true"><i class="glyphicon glyphicon-edit"/></button>
+					<a class="btn btn-xs btn-default" ng-href="#/show/{{t.id}}"><i class="glyphicon glyphicon-eye-open"/></a>
 				</div>
 				<div ng-show="t.editMode" class="btn-group">
 					<button class="btn btn-sm btn-success" ng-click="t.editMode = false"><i class="glyphicon glyphicon-floppy-disk"/></button>
@@ -39,4 +42,4 @@
 	</tbody>
 </table>
 
-<button class="btn btn-primary" ng-click="createTransaction()">New Transaction</button>
+<button class="btn btn-primary" ng-click="createTransaction()"><i class="glyphicon glyphicon-plus"/> New Transaction</button>

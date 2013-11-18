@@ -41,7 +41,7 @@ var search_form = {
 				return amount_bucket.query(search_form.amount.single_amount, amount_bucket.max);
 			},
 			is_valid_result: function(transaction){
-				return transaction.amount > search_form.amount.single_amount;
+				return transaction.amount > parseInt(search_form.amount.single_amount);
 			}
 		},
 		{	

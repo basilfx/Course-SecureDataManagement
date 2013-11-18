@@ -28,6 +28,10 @@ paySafeApp.config(['$routeProvider',
 				templateUrl: 'partials/client_register.html',
 				controller: 'ClientRegisterCtrl'
 			}).
+			when('/logout',{
+				templateUrl: 'partials/client_login.html',
+				controller: 'ClientLogoutCtrl'
+			}).
 			otherwise({
 				redirectTo: '/'
 			});

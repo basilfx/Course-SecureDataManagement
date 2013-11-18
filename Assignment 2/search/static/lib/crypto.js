@@ -3,5 +3,6 @@ function decrypt(data){
 }
 
 function encryptTransaction(data){
+	delete data.id;
 	return JSON.stringify(data);
 }

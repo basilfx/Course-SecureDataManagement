@@ -7,7 +7,7 @@ urlpatterns = patterns('',
     url(r'^logout/$', views.client_logout),
 
     url(r'^transactions/$', views.transactions),
-    url(r'^login/$', views.login),
+    url(r'^login/$', views.do_login),
     url(r'^register/$', views.register),
     url(r'^createtransaction/$', views.createTransaction),
     url(r'^deletetransaction/$', views.deleteTransaction),

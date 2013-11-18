@@ -43,7 +43,7 @@ def transactions(request):
         return HttpResponse(data,mimetype='application/json')
 
 @csrf_exempt
-def login(request):
+def do_login(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
     user = authenticate(username=username, password=password)

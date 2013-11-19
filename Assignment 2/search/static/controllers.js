@@ -1,3 +1,6 @@
+//// FIXME !!!!
+userCrypto = new Crypto("key");
+
 var paySafeControllers = angular.module('paySafeControllers', []);
 
 paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location','$sce',
@@ -16,7 +19,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 					var transaction = data[i];
 
 					
-					var decrypted_data = decrypt(transaction["data"]);
+					var decrypted_data = /*userCrypto.decrypt(*/transaction["data"]/*)*/;
 					decrypted_data.id = transaction.id;
 					decrypted_data.date = new Date(decrypted_data.date);
 					decrypted_data.editMode = false;
@@ -99,7 +102,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 				else{
 					for (i = 0; i < data.length; i++){
 						var transaction = data[i];						
-						var decrypted_data = decrypt(transaction["data"]);
+						var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
 						decrypted_data.id = transaction.id;
 						decrypted_data.date = new Date(decrypted_data.date);
 						decrypted_data.editMode = false;

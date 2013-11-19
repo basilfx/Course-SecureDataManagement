@@ -37,4 +37,4 @@ paySafeApp.config(['$routeProvider',
 			});
 
 	}
-])
+]);

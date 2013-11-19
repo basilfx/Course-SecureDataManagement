@@ -46,7 +46,7 @@ class Protocol(object):
         For each category, generate a public key and a master key
 
         @return Tuple of master keys and public keys. Each set of keys is a
-                dictionary per category.
+            dictionary per category.
         """
 
         # Generate a public key and master key for each category
@@ -167,7 +167,7 @@ class Protocol(object):
         @return Decrypted message
 
         @throws DecryptError if data is invalid or if attributes are missing in
-                keypairs
+            keypairs
         @throws KeyRingError if no public key is available for cipher's category
         """
 
@@ -283,7 +283,7 @@ class Protocol(object):
         @return Given mappings
 
         @throws ParameterError if a category key does not exist or a given
-                party value does not exists
+            party value does not exists
         """
 
         for category, parties in mappings.iteritems():
@@ -320,7 +320,7 @@ class Protocol(object):
         @return CP-ABE compatible policy
 
         @throws ParameterError if a given party is not known to the protocol or
-                when a (sub)set is empty.
+            when a (sub)set is empty.
         """
 
         # Validate each party

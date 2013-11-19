@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
         # Retrieve key
         try:
-            count = actions.retrieve(storage, category)
+            count = actions.retrieve(storage, { "category": category })
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
         except ValueError:

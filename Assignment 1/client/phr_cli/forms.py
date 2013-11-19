@@ -113,7 +113,7 @@ class EncryptForm(forms.Form):
 class GrantForm(forms.Form):
     category = forms.ChoiceField()
     parties = forms.MultipleChoiceField(widget = forms.CheckboxSelectMultiple)
-    access = forms.ChoiceField(choices=(("R", "READ"), ("W", "WRITE")))
+    access = forms.ChoiceField(choices=(("W", "WRITE"), ("R", "READ")))
 
     # Form Layout
     helper = FormHelper()

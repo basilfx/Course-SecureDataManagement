@@ -2,7 +2,26 @@ from phr_cli.protocol import DecryptError, KeyRingError
 
 import jsonrpclib
 
+"""
+Helper methods to bridge the gap between the PHR server and our local storage
+file. Methods in this module are shared between the command line commands and
+the web interface.
+"""
+
 def create(storage, host, record_name):
+    """
+    Create a new PHR record on the server.
+
+    This method modifies the storage, but does not save the changes.
+
+    @param storage Data file to work with.
+    @param host Remote PHR server to connect with
+    @param record_name User identifier to represent the record.
+    @return ID of the newly created record
+
+    @throws ValueError if record could not be created on the remote server.
+    """
+
     # Create a new record on the server
     api = jsonrpclib.Server(host)
 
@@ -17,6 +36,7 @@ def create(storage, host, record_name):
     storage.record_name = record_name
     storage.record_role = "OWNER"
 
+    # Server may fail.
     if not storage.record_id:
         raise ValueError("Unable to create record")
 
@@ -30,6 +50,20 @@ def create(storage, host, record_name):
     return storage.record_id
 
 def connect(storage, host, key_data):
+    """
+    Connect to an existing PHR record on a given server via a user specified
+    key.
+
+    This method modifies the storage, but does not save the changes.
+
+    @param storage Data file to work with.
+    @param host Remote PHR server to connect with.
+    @param key_data Base64 encoded key data, supplied by the record owner.
+    @return ID of the record connected with.
+
+    @throws ValueError if record does not exist on remote server or if ID
+        embedded in the key does not match the ID of the remote record.
+    """
     # Connect to remote server
     api = jsonrpclib.Server(host)
 
@@ -63,6 +97,9 @@ def connect(storage, host, key_data):
     return record["id"]
 
 def decrypt(storage, record_item_id=None, record_item=None):
+    """
+    @param storage Data file to work with.
+    """
     instance = storage.get_protocol()
 
     # Query the server for any keys
@@ -90,6 +127,9 @@ def decrypt(storage, record_item_id=None, record_item=None):
         return None
 
 def encrypt(storage, category, parties, message):
+    """
+    @param storage Data file to work with.
+    """
     instance = storage.get_protocol()
 
     # Encrypt
@@ -106,10 +146,13 @@ def encrypt(storage, category, parties, message):
     return record_item_id
 
 def grant(storage, category, parties):
+    """
+    @param storage Data file to work with.
+    """
     instance = storage.get_protocol()
 
     # Encrypt
-    key = instance.keys_to_base64(storage.public_keys[category])
+    key = instance.keys_to_base64((category, storage.public_keys[category]))
     data = instance.encrypt(key, storage.public_keys, category, parties)
 
     # Upload to server
@@ -123,53 +166,68 @@ def grant(storage, category, parties):
     # Done
     return key_id
 
-def retrieve(storage, category):
+def retrieve(storage, **lookups):
+    """
+    @param storage Data file to work with.
+    """
     instance = storage.get_protocol()
 
     # Query the server for any keys
     api = jsonrpclib.Server(storage.host)
-    key_ids = api.find_keys(storage.record_id, { "category": category })
+    key_ids = api.find_keys(storage.record_id, lookups)
 
     if not key_ids:
         return
 
     # Process each ID
-    success = False
+    new_categories = []
 
     for key_id in key_ids:
         key = api.get_key(storage.record_id, key_id)
 
         # Try to decrypt the key
-        success2 = False
+        success = False
 
         for secret_keys in storage.secret_keys.itervalues():
             try:
                 data = instance.decrypt(key["data"], secret_keys)
-                success2 = True
+                success = True
 
                 break
-            except DecryptError:
-                # Just ignore
+            except (DecryptError, KeyRingError):
+                # Just ignore, since this is a naive implementation just trying
+                # to decrypt a key.
                 continue
 
-        if not success2:
+        if not success:
             continue
 
         # Store it
         if not hasattr(storage, "public_keys"):
             storage.public_keys = {}
 
-        storage.public_keys[category] = instance.base64_to_keys(data)
+        category, key = instance.base64_to_keys(data)
+        storage.public_keys[category] = key
 
-        # When success, stop. There can only be one public key for a given
-        # category.
-        return True
+        # For stats
+        new_categories.append(category)
+
+    # Return number of imported keys
+    return new_categories
 
 def get_record_items(storage, record_item_ids):
+    """
+    @param storage Data file to work with.
+    """
+
     api = jsonrpclib.Server(storage.host)
     return [ api.get_record_item(storage.record_id, x) for x in record_item_ids ]
 
 def list_record_items(storage, **lookups):
+    """
+    @param storage Data file to work with.
+    """
+
     api = jsonrpclib.Server(storage.host)
     record_item_ids = api.find_record_items(storage.record_id, lookups)
     print record_item_ids

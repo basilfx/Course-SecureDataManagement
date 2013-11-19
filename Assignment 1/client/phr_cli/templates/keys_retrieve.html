@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% trans 'Grant access' %}
+{% endblock title %}
+
+{% block content %}
+    <p>
+        {% if new_categories|length > 0 %}
+            {% trans 'Imported keys for:' %} {{ new_categories|join:", " }}
+        {% else %}
+            {% trans 'No new keys imported. Make sure the record owner has granted keys.' %}
+        {% endif %}
+    </p>
+{% endblock content %}

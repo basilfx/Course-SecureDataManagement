@@ -14,12 +14,7 @@ ROOT_DIR = os.path.abspath(os.path.join(CONF_DIR, "../"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(ROOT_DIR, 'database.db'),
-        #'ENGINE': 'django.db.backends.mysql',
-        #'NAME': 'phr',
-        #'USER': 'phr',
-        #'PASSWORD': 'phr',
-        #'HOST': '/tmp/mysql.sock'
+        'NAME': os.path.join(ROOT_DIR, 'database.db')
     }
 }
 

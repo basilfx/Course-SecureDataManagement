@@ -59,6 +59,8 @@ def records_share(request, data_file):
 @resolve_data_file
 def record_items_create(request, data_file):
     categories = list(getattr(data_file, "public_keys", {}).iterkeys())
+
+    # Create form with available categories and parties
     form = EncryptForm(
         categories,
         data_file.parties,
@@ -137,6 +139,8 @@ def record_items_show(request, data_file, record_item_id):
 @resolve_data_file
 def keys_grant(request, data_file):
     categories = list(getattr(data_file, "public_keys", {}).iterkeys())
+
+    # Create form with available categories and parties
     form = GrantForm(
         categories,
         data_file.parties,
@@ -149,10 +153,12 @@ def keys_grant(request, data_file):
             key_id = actions.grant(data_file, form.cleaned_data["category"], form.cleaned_data["parties"])
 
             if key_id:
-                messages.info(request, "Granted %s access to %s" % (
-                    ", ".join(form.cleaned_data["parties"]),
-                    form.cleaned_data["category"]
-                ))
+                messages.info(request,
+                    "Granted %s access to %s" % (
+                        ", ".join(form.cleaned_data["parties"]),
+                        form.cleaned_data["category"]
+                    )
+                )
             else:
                 message.error(request, "Unable to grant access")
 
@@ -166,7 +172,14 @@ def keys_grant(request, data_file):
 
 @resolve_data_file
 def keys_retrieve(request, data_file):
-    pass
+    new_categories = actions.retrieve(data_file)
+
+    # If any change, save it
+    if len(new_categories) > 0:
+        data_file.save()
+
+    # Render template
+    return render(request, "keys_retrieve.html", locals())
 
 def records_select(request):
     form = SelectDataFileForm(data=request.POST or None)
@@ -183,7 +196,7 @@ def records_create(request):
     form = CreatePHRForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        # Create a new data file
+        # Determine name for new data file
         new_data_file = "%s.json" % uuid.uuid4().hex
         data_file = os.path.join(settings.ROOT_DIR, "data", new_data_file)
 

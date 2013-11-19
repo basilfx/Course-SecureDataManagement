@@ -34,7 +34,7 @@ class DataFile(object):
 
         @param data_file Output file name
         @param load Boolean to indicate if the load() method should be invoked
-               directly
+            directly.
         """
 
         self.meta = self.Meta()

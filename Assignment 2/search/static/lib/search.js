@@ -1,35 +1,59 @@
+var symmetric_key = "";
+
 var amount_bucket = {
-	bucket_list: [0,1000,2000,3000,4000,5000,6000,7000,8000,9000],
-	query: function(small, large){
-		index_of_small = 0;
-		for (i = 0; i < amount_bucket.bucket_list.length -1; i++){
-			if (amount_bucket.bucket_list[i] <= small && small < amount_bucket.bucket_list[i+1] ){
-				index_of_small = i;
-				break;
-			}
-		}
-		result = "" + index_of_small;
-		for (i = index_of_small; i < amount_bucket.bucket_list.length ; i++){
-			if (small < amount_bucket.bucket_list[i] && amount_bucket.bucket_list[i] <= large ){
-				result = result + "," + i;
-			}
-		}
-		return "amount/" + result + "/";
+	max: 0,
+	min: 0,
+	map: [0,1000,2000,3000,4000,5000,6000,7000,8000,9000],
+
+	generateAmountQuery: function(lower_amount, upper_amount){
+	   var lower_index = amount_bucket.amountToIndex(lower_amount);
+	   var upper_index = amount_bucket.amountToIndex(upper_amount);	   
+	   return indexToBucketValues(lower_index, upper_index, amount_bucket.map.length/2, "amount");
 	},
-	value: function(amount){
-		return 5;
-	}
+
+	amountToIndex: function(amount) { 
+	    var index = amount_bucket.map.length -1;
+	    for (i = 0; i < amount_bucket.map.length -1; i++) {
+	        if (amount_bucket.map[i] <= amount && amount < amount_bucket.map[i+1]) {
+	            index = i;
+	            break;
+	        }
+	    }
+	    return index;
+	}	
 };
 var date_bucket = {
-	bucket_list: [0,1,2,3,4,5,6,7,8,9],
-	query: function(small, large){
-		return "date/3,4,5,6/";
+	max: 1387461777260, //1 Dec 2013
+	min: 0,
+
+	generateDateQuery: function(lower_date, upper_date){
+	   var lower_index = new Date(lower_date).getMonth();
+	   var upper_index = new Date(upper_date).getMonth();
+	   return indexToBucketValues(lower_index, upper_index, 6, "date");
 	},
-	value: function(amount){
-		return 5;
+
+	dateToIndex: function(date){
+		return new Date(date).getMonth() % 6;
 	}
 };
 
+function indexToBucketValues(lower_index, upper_index, number_of_buckets, field) {
+    var values = [];
+    for (i = lower_index; i < upper_index + 1; i++){
+        values.push(indexToBucketValue(i%number_of_buckets,field));
+    }        
+    values.sort();
+    
+    var result = values.filter(function(elem, pos) {
+		return values.indexOf(elem) == pos;
+	});
+    return result.join();
+}
+     
+function indexToBucketValue(index, field){
+    result = sha3(index + field + symmetric_key)
+    return result[0];
+}
 
 var search_form = {
 	amount: {
@@ -38,7 +62,7 @@ var search_form = {
 			name: "Greater than",
 			is_between: false,
 			list_buckets: function(){
-				return amount_bucket.query(search_form.amount.single_amount, amount_bucket.max);
+				return amount_bucket.generateAmountQuery(search_form.amount.single_amount, amount_bucket.max);
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount > parseInt(search_form.amount.single_amount);
@@ -48,7 +72,7 @@ var search_form = {
 			name: "Less than",
 			is_between: false,
 			list_buckets: function(){
-				return amount_bucket.query(amount_bucket.min, search_form.amount.single_amount);
+				return amount_bucket.generateAmountQuery(amount_bucket.min, search_form.amount.single_amount);
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount < search_form.amount.single_amount;
@@ -58,7 +82,7 @@ var search_form = {
 			name: "Equal to",
 			is_between: false,
 			list_buckets: function(){
-				return amount_bucket.query(search_form.amount.single_amount, search_form.amount.single_amount);
+				return amount_bucket.amountToIndex(search_form.amount.single_amount);
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount == search_form.amount.single_amount;
@@ -68,7 +92,7 @@ var search_form = {
 			name: "Between",
 			is_between: true,
 			list_buckets: function(){
-				return amount_bucket.query(search_form.amount.from_amount, search_form.amount.to_amount);
+				return amount_bucket.generateAmountQuery(search_form.amount.from_amount, search_form.amount.to_amount);
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount > search_form.amount.from_amount && transaction.amount < search_form.amount.to_amount;
@@ -82,61 +106,62 @@ var search_form = {
 			name: "After",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.query(search_form.date.single_date, date_bucket.max);
+				return date_bucket.generateDateQuery(search_form.date.single_date.date, date_bucket.max);
 			},
 			is_valid_result: function(transaction){
-				return true;
+				return transaction.date.valueOf() > new Date(search_form.date.single_date.date).valueOf();
 			}
 		},
 		{	
 			name: "Before",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.query(date_bucket.min, search_form.date.single_date);
+				return date_bucket.generateDateQuery(date_bucket.min, search_form.date.single_date.date);
 			},
 			is_valid_result: function(transaction){
-				return true;
+				return transaction.date.valueOf() < new Date(search_form.date.single_date.date).valueOf();
+
 			}
 		},
 		{
 			name: "On",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.query(search_form.date.single_date, search_form.date.single_date);
+				return date_bucket.dateToIndex(search_form.date.single_date.date);
 			},
 			is_valid_result: function(transaction){
-				return true;
+				return transaction.date.valueOf() == new Date(search_form.date.single_date.date).valueOf();
 			}
 		},
 		{
 			name: "Between",
 			is_between: true,
 			list_buckets: function(){
-				return date_bucket.query(search_form.date.from_date, search_form.date.to_date);
+				return date_bucket.generateDateQuery(search_form.date.from_date.date, search_form.date.to_date.date);
 			},
 			is_valid_result: function(transaction){
-				return true;
+				return transaction.date.valueOf() > new Date(search_form.date.from_date.date).valueOf() && transaction.date.valueOf() < new Date(search_form.date.to_date.date).valueOf();
 			}
 		}],
 		enabled: false,
 		single_date: {
-			"date": "2012-09-01T00:00:00.000Z"
+			date: new Date()
 		},
 		from_date: {
-			"date": "2012-09-01T00:00:00.000Z"
+			date: new Date()
 		},
 		to_date: {
-			"date": "2012-09-01T00:00:00.000Z"
+			date: new Date()
 		}
 	},
 
 	generate_url: function(){
-		result = "";
+		result = "?"
 		if (search_form.amount.enabled){
-			result = result + search_form.amount.operation.list_buckets();
+			result = result + "amount=" + search_form.amount.operation.list_buckets() + "&";
 		}
 		if (search_form.date.enabled){
-			result = result + search_form.date.operation.list_buckets();
+			result = result + "date=" + search_form.date.operation.list_buckets();
 		}
 		return result;
 	},

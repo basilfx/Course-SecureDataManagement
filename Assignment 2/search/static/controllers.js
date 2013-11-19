@@ -18,6 +18,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 					
 					var decrypted_data = decrypt(transaction["data"]);
 					decrypted_data.id = transaction.id;
+					decrypted_data.date = new Date(decrypted_data.date);
 					decrypted_data.editMode = false;
 					decrypted_data.update = $scope.updateTransaction;
 					decrypted_data.delete = $scope.deleteTransaction;
@@ -29,10 +30,10 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$scope.errordata = data;
 		});
 
-		$scope.createTransaction = function() {
+		$scope.createTransaction = function() { 
 			$scope.transactions.push({
 				id: -1, sender: "", receiver: "", amount: 0,
-				description: "", date: "", editMode: true, update: $scope.updateTransaction , delete: $scope.deleteTransaction
+				description: "", date: new Date(), editMode: true, update: $scope.updateTransaction , delete: $scope.deleteTransaction
 			});
 		}
 
@@ -41,7 +42,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$http({
 			    method: 'POST',
 			    url: '/search/createtransaction/',
-			    data: "id=" + t.id + "&data=" + encryptTransaction(t) + "&amount_bucket=" + amount_bucket.value(t.amount) + "&date_bucket=" + date_bucket.value(t.date),
+			    data: "id=" + t.id + "&data=" + encryptTransaction(t) + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				$scope.testdata =  $sce.trusted(data);
@@ -83,16 +84,14 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 		$scope.search_form = search_form;
 		$scope.search_form.amount.operation = $scope.search_form.amount.operations[0];
 		$scope.search_form.date.operation = $scope.search_form.date.operations[0];
-		amount_bucket.min = amount_bucket.bucket_list[0];
-		amount_bucket.max = amount_bucket.bucket_list[amount_bucket.bucket_list.length -1];
-		date_bucket.min = date_bucket.bucket_list[0];
-		date_bucket.max = date_bucket.bucket_list[date_bucket.bucket_list.length -1];
+		amount_bucket.min = amount_bucket.map[0];
+		amount_bucket.max = amount_bucket.map[amount_bucket.map.length -1];
 
 		$scope.search_url = "";
 		$scope.search = function() {
 			$scope.search_url = $scope.search_form.generate_url();
 			$scope.transactions = [];
-			$http({method: 'GET', url: '/search/search/' + $scope.search_url
+			$http({method: 'GET', url: '/search/search/amountdate/' + $scope.search_url
 			}).success(function(data, status, headers, config) {
 				if(data["login_successful"]==false){
 					$location.path("/login");
@@ -102,6 +101,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 						var transaction = data[i];						
 						var decrypted_data = decrypt(transaction["data"]);
 						decrypted_data.id = transaction.id;
+						decrypted_data.date = new Date(decrypted_data.date);
 						decrypted_data.editMode = false;
 						decrypted_data.update = $scope.updateTransaction;
 						decrypted_data.delete = $scope.deleteTransaction;

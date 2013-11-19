@@ -123,73 +123,48 @@ def register(request):
     print request.POST
     user = User.objects.create_user(username, None, password)
     user.save()
-    client = Client(user=user,client_bucket=user.id)
+    client_bucket = user.id - user.id % 3
+    client = Client(user=user,client_bucket=client_bucket)
     client.save()
     data = {"registered_successful": True};
     data = json.dumps(data, indent=4)
     return HttpResponse(data,mimetype='application/json')
 
-
-def search_amount(request, amount):
+def search_amount_date(request):
     if request.user.is_authenticated():
-        user = request.user
-        amount = amount.replace("/","")
-        client = Client.objects.get(user=user)
-        query = amount.split(',')
-        amount_list = []
-        for number in query:
-            amount_list.append(int(number))
-        transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list)
 
-        data = []
-        for transaction in transactions:
-            data.append(model_to_dict(transaction, fields=["id", "data"]))
-        data = json.dumps(data, indent=4)
+        amounts = request.GET.get("amount", False)
+        dates = request.GET.get("date", False)
+        print amounts
 
-        return HttpResponse(data,mimetype='application/json')
-    else:
-        data = {"login_successful": False};
-        data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        if not amounts and not dates:
+            return
 
-def search_date(request, date):
-    if request.user.is_authenticated():
         user = request.user
         client = Client.objects.get(user=user)
-        date = date.data("/","")
-        query = date.split(',')
-        date_list = []
-        for number in query:
-            date_list.append(int(number))
-        transactions = Transaction.objects.filter(client_bucket=client.client_bucket,miliseconds_bucket__in=date_list)
 
-        data = []
-        for transaction in transactions:
-            data.append(model_to_dict(transaction, fields=["id", "data"]))
-        data = json.dumps(data, indent=4)
-
-        return HttpResponse(data,mimetype='application/json')
-    else:
-        data = {"login_successful": False};
-        data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
-
-def search_amount_date(request, amount, date):
-    if request.user.is_authenticated():
-        user = request.user
-        amount = amount.replace("/","")
-        date = date.replace("/","")
-        client = Client.objects.get(user=user)
-        query = amount.split(',')
-        amount_list = []
-        for number in query:
-            amount_list.append(int(number))
-        query = date.split(',')
-        date_list = []
-        for number in query:
-            date_list.append(int(number))
-
-        transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list, miliseconds_bucket__in=date_list)
+        if amounts and dates:
+            query = amounts.split(',')
+            amount_list = []
+            for number in query:
+                amount_list.append(int(number))
+            query = dates.split(',')
+            date_list = []
+            for number in query:
+                date_list.append(int(number))
+            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list, miliseconds_bucket__in=date_list)
+        elif amounts:
+            query = amounts.split(',')
+            amount_list = []
+            for number in query:
+                amount_list.append(int(number))
+            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list)
+        else:
+            query = dates.split(',')
+            date_list = []
+            for number in query:
+                date_list.append(int(number))
+            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,miliseconds_bucket__in=date_list)
 
         data = []
         for transaction in transactions:

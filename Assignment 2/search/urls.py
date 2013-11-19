@@ -11,9 +11,6 @@ urlpatterns = patterns('',
     url(r'^register/$', views.register),
     url(r'^createtransaction/$', views.createTransaction),
     url(r'^deletetransaction/$', views.deleteTransaction),
-
-    url(r'^search/amount/(?P<amount>.+)$', views.search_amount),
-    url(r'^search/date/(?P<date>.+)$', views.search_date),
-    url(r'^search/amount/(?P<amount>.+)/date/(?P<date>.+)$', views.search_amount_date),
+    url(r'^search/amountdate/$', views.search_amount_date),
 
 )

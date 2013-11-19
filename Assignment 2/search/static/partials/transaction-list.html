@@ -5,6 +5,7 @@
 			<th>Receiver</th>
 			<th>Amount</th>
 			<th>Description</th>
+			<th>Date</th>
 			<th>Edit</th>
 		</tr>
 	</thead>
@@ -25,6 +26,12 @@
 			<td>
 				<div ng-show="!t.editMode">{{t.description}}</div>
 				<div ng-show="t.editMode"><input class="form-control" type="text" ng-model="t.description"/></div>
+			</td>
+			<td>
+				<div ng-show="!t.editMode">{{t.date.getDate()}}/{{t.date.getMonth() + 1}}/{{t.date.getFullYear()}}</div>
+			    <div class="control-group input-append" ng-show="t.editMode">
+			      <input id="inputDatepicker" class="form-control" type="text" ng-model="t.date" data-date-format="dd/mm/yyyy" bs-datepicker>
+			    </div>
 			</td>
 			<td>
 				<div ng-show="!t.editMode">

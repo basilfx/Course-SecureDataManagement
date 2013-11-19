@@ -7,8 +7,15 @@
 
 {% block content %}
     <p>
-        {% trans 'Please enter the PHR server address and a record name' %}
+        {% blocktrans %}
+            Please enter the PHR server address and a record name. When clicking
+            submit, a new record will be created on the PHR server.
+        {% endblocktrans %}
     </p>
 
-    {% crispy form %}
+    <div class="row">
+        <div class="col-md-6">
+            {% crispy form %}
+        </div>
+    </div>
 {% endblock content %}

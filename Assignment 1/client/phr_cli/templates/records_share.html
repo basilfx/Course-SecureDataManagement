@@ -10,7 +10,9 @@
     <p>
         {% blocktrans %}
             Copy the keys below and share them with others to connect them to
-            this PHR.
+            this PHR. We recommend to share the keys via a
+            <a href="http://tools.ietf.org/html/rfc1149">RFC 1149</a> certified
+            service.
         {% endblocktrans %}
     </p>
 
@@ -23,8 +25,13 @@
     </p>
 
     {% for secret_key in secret_keys %}
-        <h2>Secret key for {{ secret_key.party }}</h2>
-        <textarea class="form-control" rows="3">{{ secret_key.data }}</textarea>
+        <h2>
+            Secret key for {{ secret_key.party }}
+
+            <small class="pull-right">{{ secret_key.categories|join:", " }}</small>
+        </h2>
+
+        <textarea class="form-control" rows="5">{{ secret_key.data }}</textarea>
     {% endfor %}
 
 {% endblock content %}

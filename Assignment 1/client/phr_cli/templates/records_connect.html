@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}
     {% trans 'Connect to PHR record' %}
@@ -10,11 +10,9 @@
         {% trans 'Please enter the PHR server address and paste the key data' %}
     </p>
 
-    <form method="POST">
-        {% csrf_token %}
-
-        {{ form }}
-
-        <input type="submit" value="{% trans 'Connect' %}">
-    </form>
+    <div class="row">
+        <div class="col-md-6">
+            {% crispy form %}
+        </div>
+    </div>
 {% endblock content %}

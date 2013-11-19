@@ -1,31 +1,35 @@
 {% extends 'layout.html' %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}
-    {% trans 'Select data file.' %}
+    {% trans 'Welcome' %}
 {% endblock title %}
 
 {% block content %}
-    <p>
-        {% trans 'Select a data file to work with.' %}
-    </p>
+    {% if form.fields.data_file.choices|length > 0 %}
+        <p>
+            {% trans 'Select a data file to work with.' %}
+        </p>
 
-    <form method="POST">
-        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                {% crispy form %}
+            </div>
+        </div>
 
-        {{ form }}
+        <p>
+            {% trans 'New here?' %}
+        </p>
+    {% else %}
+        <p>
+            {% trans 'Please create a new PHR record, or connect to an existing one.' %}
+        </p>
+    {% endif %}
 
-        <input type="submit" value="{% trans 'Select' %}">
-    </form>
-
-    <p>
-        {% trans 'New here?' %}
-    </p>
-
-    <a href="{% url 'phr_cli.views.records_create' %}" class="btn btn-primary" role="button">
+    <a href="{% url 'phr_cli.views.records_create' %}" class="btn btn-default" role="button">
         {% trans 'Create a new PHR record' %}
     </a>
-    <a href="{% url 'phr_cli.views.records_connect' %}" class="btn btn-primary" role="button">
+    <a href="{% url 'phr_cli.views.records_connect' %}" class="btn btn-default" role="button">
         {% trans 'Connect to a PHR record' %}
     </a>
 {% endblock content %}

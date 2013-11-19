@@ -6,9 +6,19 @@
 {% endblock title %}
 
 {% block content %}
-    <p>
-        {% trans 'Select below which parties you want to grant access to.' %}
-    </p>
+    {% if categories|length > 0 %}
+        <p>
+            {% trans 'Select below which parties you want to grant access to.' %}
+        </p>
 
-    {% crispy form %}
+        <div class="row">
+            <div class="col-md-6">
+                {% crispy form %}
+            </div>
+        </div>
+    {% else %}
+        <p class="alert alert-danger">
+            {% trans 'You do not possess any keys to encrypt data with.' %}
+        </p>
+    {% endif %}
 {% endblock content %}

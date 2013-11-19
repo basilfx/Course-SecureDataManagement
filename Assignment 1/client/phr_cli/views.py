@@ -11,6 +11,8 @@ from functools import wraps
 
 import os
 import json
+import uuid
+import base64
 
 def resolve_data_file(func):
     @wraps(func)
@@ -47,6 +49,7 @@ def records_share(request, data_file):
         data = instance.keys_to_base64((data_file.record_id, party, keys))
 
         secret_keys.append({
+            "categories": keys.iterkeys(),
             "party": party,
             "data": data
         })
@@ -55,16 +58,31 @@ def records_share(request, data_file):
 
 @resolve_data_file
 def record_items_create(request, data_file):
+    categories = list(getattr(data_file, "public_keys", {}).iterkeys())
     form = EncryptForm(
-        list(data_file.public_keys.iterkeys()),
+        categories,
         data_file.parties,
-        data=request.POST or None
+        data=request.POST or None,
+        files=request.FILES or None
     )
 
     if request.method == "POST" and form.is_valid():
+        # Convert file to URI
+        attachment = form.cleaned_data["attachment"]
+
+        if attachment:
+            attachment_size = attachment.size
+            attachment_name = attachment.name
+            attachment_data = "data:%s;base64,%s" % (
+                attachment.content_type,
+                base64.b64encode(attachment.read())
+            )
+
         # Simple JSON used as container
         data = json.dumps([
             form.cleaned_data["title"],
+            data_file.record_role,
+            [attachment_size, attachment_name, attachment_data] if attachment else None,
             form.cleaned_data["message"]
         ])
 
@@ -97,7 +115,10 @@ def record_items_list(request, data_file):
         data = actions.decrypt(data_file, record_item=record_item)
 
         if data:
-            record_item["title"] = json.loads(data)[0]
+            data = json.loads(data)
+            record_item["title"] = data[0]
+            record_item["sender"] = data[1]
+            record_item["attachment"] = data[2]
 
     return render(request, "record_items_list.html", locals())
 
@@ -106,23 +127,41 @@ def record_items_show(request, data_file, record_item_id):
     data = actions.decrypt(data_file, record_item_id)
 
     if data:
-        data = json.loads(data)
-        title = data[0]
-        message = data[1]
+        title, sender, attachment, message = json.loads(data)
+
+        if attachment:
+            attachment_size, attachment_name, attachment_data = attachment
 
     return render(request, "record_items_show.html", locals())
 
 @resolve_data_file
 def keys_grant(request, data_file):
+    categories = list(getattr(data_file, "public_keys", {}).iterkeys())
     form = GrantForm(
-        list(data_file.public_keys.iterkeys()),
+        categories,
         data_file.parties,
         data=request.POST or None
     )
 
+    # Handle request
     if request.method == "POST" and form.is_valid():
-        pass
+        if form.cleaned_data["access"] == "W":
+            key_id = actions.grant(data_file, form.cleaned_data["category"], form.cleaned_data["parties"])
 
+            if key_id:
+                messages.info(request, "Granted %s access to %s" % (
+                    ", ".join(form.cleaned_data["parties"]),
+                    form.cleaned_data["category"]
+                ))
+            else:
+                message.error(request, "Unable to grant access")
+
+            # Return to index page
+            return redirect("phr_cli.views.index")
+        elif form.cleaned_data["access"] == "R":
+            messages.info(request, "Ask the record owner for a secret!")
+
+    # Render template
     return render(request, "keys_grant.html", locals())
 
 @resolve_data_file
@@ -145,8 +184,8 @@ def records_create(request):
 
     if request.method == "POST" and form.is_valid():
         # Create a new data file
-        data_file = form.cleaned_data["data_file"]
-        data_file = os.path.join(settings.ROOT_DIR, "data", data_file)
+        new_data_file = "%s.json" % uuid.uuid4().hex
+        data_file = os.path.join(settings.ROOT_DIR, "data", new_data_file)
 
         # Create PHR
         storage = DataFile(data_file)
@@ -159,7 +198,7 @@ def records_create(request):
         storage.save()
 
         # Done
-        request.session["data_file"] = form.cleaned_data["data_file"]
+        request.session["data_file"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_create.html", locals())
@@ -169,8 +208,8 @@ def records_connect(request):
 
     if request.method == "POST" and form.is_valid():
         # Create a new data file
-        data_file = form.cleaned_data["data_file"]
-        data_file = os.path.join(settings.ROOT_DIR, "data", data_file)
+        new_data_file = "%s.json" % uuid.uuid4().hex
+        data_file = os.path.join(settings.ROOT_DIR, "data", new_data_file)
 
         # Connect to PHR
         storage = DataFile(data_file)
@@ -183,7 +222,7 @@ def records_connect(request):
         storage.save()
 
         # Done
-        request.session["data_file"] = form.cleaned_data["data_file"]
+        request.session["data_file"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_connect.html", locals())

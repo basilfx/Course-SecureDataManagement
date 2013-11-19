@@ -6,9 +6,19 @@
 {% endblock title %}
 
 {% block content %}
-    <p>
-        {% trans 'Enter the form below and submit to encrypt and upload the data to the PHR record.' %}
-    </p>
+    {% if categories|length > 0 %}
+        <p>
+            {% trans 'Enter the form below and submit to encrypt and upload the data to the PHR record.' %}
+        </p>
 
-    {% crispy form %}
+        <div class="row">
+            <div class="col-md-6">
+                {% crispy form %}
+            </div>
+        </div>
+    {% else %}
+        <p class="alert alert-danger">
+            {% trans 'You do not possess any keys to encrypt data with.' %}
+        </p>
+    {% endif %}
 {% endblock content %}

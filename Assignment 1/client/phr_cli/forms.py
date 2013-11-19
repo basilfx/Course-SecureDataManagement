@@ -32,40 +32,75 @@ def list_data_files():
 class SelectDataFileForm(forms.Form):
     data_file = forms.ChoiceField(required=True)
 
+    # Form layout
+    helper = FormHelper()
+    helper.form_class = "form-group"
+    helper.layout = Layout(
+        Field("data_file"),
+
+        FormActions(
+            Submit("submit", "Select", css_class="btn-primary"),
+        )
+    )
+
     def __init__(self, *args, **kwargs):
         super(SelectDataFileForm, self).__init__(*args, **kwargs)
         self.fields["data_file"].choices = list_data_files()
 
 class ConnectPHRForm(forms.Form):
     host = forms.URLField()
-    key_data = forms.CharField(max_length=1024*1024)
+    key_data = forms.CharField(max_length=1024*1024, widget=forms.Textarea())
 
-    data_file = forms.CharField(max_length=128)
+    # Form layout
+    helper = FormHelper()
+    helper.form_class = "form-group"
+    helper.layout = Layout(
+        Field("host"),
+        Field("key_data"),
+        Field("data_file"),
+
+        FormActions(
+            Submit("submit", "Connect", css_class="btn-primary"),
+        )
+    )
 
 class CreatePHRForm(forms.Form):
     host = forms.URLField()
     record_name = forms.CharField(max_length=128)
 
-    data_file = forms.CharField(max_length=128)
+    # Form layout
+    helper = FormHelper()
+    helper.form_class = "form-group"
+    helper.layout = Layout(
+        Field("host"),
+        Field("record_name"),
+        Field("data_file"),
+
+        FormActions(
+            Submit("submit", "Create", css_class="btn-primary"),
+        )
+    )
 
 class EncryptForm(forms.Form):
     category = forms.ChoiceField()
     parties = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,)
 
     title = forms.CharField(max_length=128)
-    message = forms.CharField(max_length=1024*1024, widget=forms.Textarea())
+    attachment = forms.FileField(required=False)
+    message = forms.CharField(max_length=1024*1024*10, widget=forms.Textarea())
 
+    # Form layout
     helper = FormHelper()
     helper.form_class = "form-group"
     helper.layout = Layout(
         Field("category"),
         Field("parties"),
         Field("title"),
+        Field("attachment"),
         Field("message"),
 
         FormActions(
-            Submit('submit', 'Create', css_class="btn-primary"),
-            Submit('cancel', 'Cancel'),
+            Submit("submit", "Create", css_class="btn-primary"),
         )
     )
 
@@ -80,6 +115,7 @@ class GrantForm(forms.Form):
     parties = forms.MultipleChoiceField(widget = forms.CheckboxSelectMultiple)
     access = forms.ChoiceField(choices=(("R", "READ"), ("W", "WRITE")))
 
+    # Form Layout
     helper = FormHelper()
     helper.form_class = "form-group"
     helper.layout = Layout(
@@ -88,8 +124,7 @@ class GrantForm(forms.Form):
         Field("access"),
 
         FormActions(
-            Submit('submit', 'Create', css_class="btn-primary"),
-            Submit('cancel', 'Cancel'),
+            Submit("submit", "Create", css_class="btn-primary"),
         )
     )
 

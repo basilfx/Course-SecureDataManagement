@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block buttons %}
-    <a class="btn btn-primary" role="button" href="{% url 'phr_cli.views.record_items_create' %}">
+    <a class="btn btn-success" role="button" href="{% url 'phr_cli.views.record_items_create' %}">
         New record item
     </a>
 {% endblock buttons %}
@@ -18,7 +18,9 @@
             <tr>
                 <th>ID</th>
                 <th>Category</th>
+                <th>Sender</th>
                 <th>Title</th>
+                <th>Attachment</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -27,7 +29,13 @@
                 <tr>
                     <td>{{ record_item.id }}</td>
                     <td>{{ record_item.category }}</td>
-                    <td>{{ record_item.title|default:"(encrypted)" }}</td>
+                    {% if not record_item.sender %}
+                        <td class="text-center" colspan="3"><em>{% trans '(encrypted)' %}</em></td>
+                    {% else %}
+                        <td>{{ record_item.sender }}</td>
+                        <td>{{ record_item.title }}</td>
+                        <td>{{ record_item.attachment|yesno:"yes,no" }}</td>
+                    {% endif %}
                     <td><a href="{% url 'phr_cli.views.record_items_show' record_item.id %}">Decrypt</a></td>
                 </tr>
             {% endfor %}

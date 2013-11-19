@@ -18,15 +18,15 @@ class Command(BaseCommand):
 
         # Retrieve key
         try:
-            success = actions.retrieve_key(storage, category)
+            count = actions.retrieve(storage, category)
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
         except ValueError:
             raise CommandError(e)
 
         # Done
-        if success:
+        if count:
             storage.save()
-            self.stdout.write("New key imported.\n")
+            self.stdout.write("%d new keys imported.\n" % count)
         else:
-            self.stderr.write("No keys to import.\n")
+            self.stout.write("No new keys imported.\n")

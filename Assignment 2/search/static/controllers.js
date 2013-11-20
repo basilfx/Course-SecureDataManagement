@@ -88,32 +88,36 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 		amount_bucket.max = amount_bucket.map[amount_bucket.map.length -1];
 
 		$scope.search_url = "";
+
 		$scope.search = function() {
-			$scope.search_url = $scope.search_form.generate_url();
-			$scope.transactions = [];
-			$http({method: 'GET', url: '/search/search/' + $scope.search_url
-			}).success(function(data, status, headers, config) {
-				if(data["login_successful"]==false){
-					$location.path("/login");
-				}
-				else{
-					for (i = 0; i < data.length; i++){
-						var transaction = data[i];						
-						var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
-						decrypted_data.id = transaction.id;
-						decrypted_data.editMode = false;
-						decrypted_data.update = $scope.updateTransaction;
-						decrypted_data.delete = $scope.deleteTransaction;
-						if($scope.search_form.is_valid_result(decrypted_data)){
-							$scope.transactions.push(decrypted_data);
-						}						
+			if($scope.search_form.is_ready_for_search()) {
+				$scope.search_url = $scope.search_form.generate_url();
+				$scope.transactions = [];
+				$http({method: 'GET', url: '/search/search/' + $scope.search_url
+				}).success(function(data, status, headers, config) {
+					if(data["login_successful"]==false){
+						$location.path("/login");
 					}
-				}
-			}).error(function(data, status, headers, config) {
-				$scope.errordata = data;
-			});
-			$scope.show_table = true;
-		};
+					else{
+						for (i = 0; i < data.length; i++){
+							var transaction = data[i];						
+							var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
+							decrypted_data.id = transaction.id;
+							decrypted_data.editMode = false;
+							decrypted_data.update = $scope.updateTransaction;
+							decrypted_data.delete = $scope.deleteTransaction;
+							if($scope.search_form.is_valid_result(decrypted_data)){
+								$scope.transactions.push(decrypted_data);
+							}						
+						}
+					}
+				}).error(function(data, status, headers, config) {
+					$scope.errordata = data;
+				});
+			} else {
+				$scope.transactions = [];
+			}
+		}
 	}
 ]);
 

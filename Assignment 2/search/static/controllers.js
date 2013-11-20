@@ -91,7 +91,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 		$scope.search = function() {
 			$scope.search_url = $scope.search_form.generate_url();
 			$scope.transactions = [];
-			$http({method: 'GET', url: '/search/search/amountdate/' + $scope.search_url
+			$http({method: 'GET', url: '/search/search/' + $scope.search_url
 			}).success(function(data, status, headers, config) {
 				if(data["login_successful"]==false){
 					$location.path("/login");

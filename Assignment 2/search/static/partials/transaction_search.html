@@ -1,4 +1,51 @@
-<h2>Search</h2>
+<h1>Search</h1>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" ng-model="search_form.amount.enabled"/> By amount
+      </label>
+    </div>
+    <form class="form-inline" role="form">
+      <div class="form-group">
+        <select class="form-control" ng-disabled="!search_form.amount.enabled" ng-model="search_form.amount.operation" ng-options="operation.name for operation in search_form.amount.operations"></select>
+      </div>
+      <div class="form-group">
+        <input type="number" ng-model="search_form.amount.single_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="Amount" ng-hide="search_form.amount.operation.is_between" step="0.01">
+      </div>
+      <div class="form-group">
+        <input type="number" ng-model="search_form.amount.from_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="From" ng-hide="!search_form.amount.operation.is_between" step="0.01">
+      </div>
+      <div class="form-group">
+        <input type="number" ng-model="search_form.amount.to_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="To" ng-hide="!search_form.amount.operation.is_between" step="0.01">
+      </div>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" ng-model="search_form.date.enabled"/> By date
+      </label>
+    </div>
+    <form class="form-inline" role="form">
+      <div class="form-group">    
+        <select class="form-control" ng-disabled="!search_form.date.enabled" ng-model="search_form.date.operation" ng-options="operation.name for operation in search_form.date.operations"></select>
+      </div>
+      <div class="form-group" ng-hide="search_form.date.operation.is_between">
+        <input class="form-control" type="date" ng-disabled="!search_form.date.enabled" ng-model="search_form.date.single_date.date"/>
+      </div>
+      <span ng-hide="!search_form.date.operation.is_between">
+        <div class="form-group">
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.to_date.date"/>
+        </div>
+        <div class="form-group">
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.from_date.date"/>
+        </div>
+      </span>
+    </form>
+  </div>
+</div>
 
 <p>TODO: server side implementation + fetching results. <br>
 Search results are requested on 3 urls:<br>
@@ -8,65 +55,29 @@ search/amount/1,2,3/date/1,2,3<br>
 (1,2,3 are the bucket values)
 </p>
 
-<form name="searchForm">
+<div id="results" ng-show="transactions.length > 0">
+  <h2>Results</h2>
 
-  <h4>Amount</h4>
-	
-  <input type="checkbox" ng-model="search_form.amount.enabled">Amount<br/>
-  <select class="form-control" ng-disabled="!search_form.amount.enabled" ng-model="search_form.amount.operation" ng-options="operation.name for operation in search_form.amount.operations"></select>
-
-  <div class="form-group">
-    <input type="text" ng-model="search_form.amount.single_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="Amount" ng-hide="search_form.amount.operation.is_between">
-    <input type="text" ng-model="search_form.amount.from_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="From" ng-hide="!search_form.amount.operation.is_between">
-    <input type="text" ng-model="search_form.amount.to_amount" class="form-control" ng-disabled="!search_form.amount.enabled" placeholder="To" ng-hide="!search_form.amount.operation.is_between">
-  </div>
-
-  <h4>Date</h4>
-	<input type="checkbox" ng-model="search_form.date.enabled">Date<br/>
-  <select class="form-control" ng-disabled="!search_form.date.enabled" ng-model="search_form.date.operation" ng-options="operation.name for operation in search_form.date.operations"></select>
-
-  <div class="form-group">
-    <div class="control-group input-append" ng-hide="search_form.date.operation.is_between">
-      <label for="inputDatepicker" class="label label-default" style="margin-right:6px;">{{search_form.date.operation.name}}:</label>
-      <input id="inputDatepicker" class="input-small" type="text" ng-model="search_form.date.single_date.date" data-date-format="dd/mm/yyyy" bs-datepicker ng-disabled="!search_form.date.enabled">
-      <button type="button" class="btn" data-toggle="datepicker"><i class="glyphicon glyphicon-calendar"/></button>
-    </div>
-    <div class="control-group input-append" ng-hide="!search_form.date.operation.is_between">
-      <label for="inputDatepicker" class="label label-default" style="margin-right:6px;">From:</label>
-      <input id="inputDatepicker" class="input-small" type="text" ng-model="search_form.date.from_date.date" data-date-format="dd/mm/yyyy" bs-datepicker ng-disabled="!search_form.date.enabled">
-      <button type="button" class="btn" data-toggle="datepicker"><i class="glyphicon glyphicon-calendar"/></i></button>
-    </div>
-    <div class="control-group input-append" ng-hide="!search_form.date.operation.is_between">
-      <label for="inputDatepicker" class="label label-default" style="margin-right:6px;">To:</label>
-      <input id="inputDatepicker" class="input-small" type="text" ng-model="search_form.date.to_date.date" data-date-format="dd/mm/yyyy" bs-datepicker ng-disabled="!search_form.date.enabled">
-      <button type="button" class="btn" data-toggle="datepicker"><i class="glyphicon glyphicon-calendar"/></i></button>
-    </div>
-  </div>
-
-    <button class="btn btn-primary btn-lg" type="button" ng-click="search()" ng-disabled="!search_form.amount.enabled && !search_form.date.enabled">Go!</button>
-    <br>TODO: implement fetching results, display url temporarily: <br>search/{{search_url}}
-
-
-
-<table ng-show="show_table" class="table table-striped">
-	<thead>
-		<tr>
-			<th>Id</th>
-			<th>Sender</th>
-			<th>Receiver</th>
-			<th>Amount</th>
-			<th>Description</th>
-      <th>Date</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr ng-repeat="transaction in transactions">
-			<td>{{transaction.id}}</td>
-			<td>{{transaction.sender}}</td>
-			<td>{{transaction.receiver}}</td>
-			<td>{{transaction.amount}}</td>
-			<td>{{transaction.description}}</td>
-      <td>{{transaction.date.getDate()}}/{{transaction.date.getMonth() + 1}}/{{transaction.date.getFullYear()}}</td>
-		</tr>
-	</tbody>
-</table>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Sender</th>
+        <th>Receiver</th>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="transaction in transactions">
+        <td>{{transaction.id}}</td>
+        <td>{{transaction.sender}}</td>
+        <td>{{transaction.receiver}}</td>
+        <td>{{transaction.amount}}</td>
+        <td>{{transaction.description}}</td>
+        <td>{{transaction.date.getDate()}}/{{transaction.date.getMonth() + 1}}/{{transaction.date.getFullYear()}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

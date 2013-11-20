@@ -44,8 +44,8 @@
 					<a class="btn btn-xs btn-default" ng-href="#/show/{{t.id}}"><i class="glyphicon glyphicon-eye-open"/></a>
 				</div>
 				<div ng-show="t.editMode" class="btn-group">
-					<button class="btn btn-sm btn-success" ng-click="t.update(t)"><i class="glyphicon glyphicon-floppy-disk"/></button>
-					<button class="btn btn-sm btn-danger" ng-click="t.delete(t)"><i class="glyphicon glyphicon-trash"/></button>
+					<button class="btn btn-sm btn-success" ng-click="updateTransaction(t)"><i class="glyphicon glyphicon-floppy-disk"/></button>
+					<button class="btn btn-sm btn-danger" ng-click="deleteTransaction(t)"><i class="glyphicon glyphicon-trash"/></button>
 				</div>
 			</td>
 		</tr>

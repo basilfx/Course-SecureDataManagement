@@ -74,7 +74,7 @@ def createTransaction(request):
         data = request.POST.__getitem__('data')
         amount_bucket = request.POST.__getitem__('amount_bucket')
         date_bucket = request.POST.__getitem__('date_bucket')
-        if (id == "-1"):
+        if id == "-1" or id == "undefined":
             t = Transaction(data=data, amount_bucket=amount_bucket,miliseconds_bucket=date_bucket,client_bucket=client_bucket)
             t.save()
             data = {"message": "Transaction created"};
@@ -101,7 +101,7 @@ def deleteTransaction(request):
         client = Client.objects.get(user=user)
         client_bucket = client.client_bucket
         id = request.POST.__getitem__('id')
-        if (id != "-1"):
+        if id != "-1" or id == "undefined":
             t = Transaction.objects.get(id=int(id),client_bucket=client_bucket)
             t.delete()
             data = {"message": "Transaction deleted"};

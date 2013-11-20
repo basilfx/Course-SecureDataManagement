@@ -19,11 +19,9 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 					var transaction = data[i];
 
 					var decrypted_data = /*userCrypto.decrypt(*/transaction["data"]/*)*/;
+					console.log(decrypted_data);
 					decrypted_data.id = transaction.id;
-					decrypted_data.date = new Date(decrypted_data.date);
 					decrypted_data.editMode = false;
-					decrypted_data.update = $scope.updateTransaction;
-					decrypted_data.delete = $scope.deleteTransaction;
 					$scope.transactions.push(JSON.parse(decrypted_data));
 				}
 			}
@@ -39,14 +37,15 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 		}
 
 		$scope.updateTransaction = function(t){
-			t.editMode = false;
 			$http({
 			    method: 'POST',
 			    url: '/search/createtransaction/',
-			    data: "id=" + t.id + "&data=" + encryptTransaction(t) + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
+			    data: "id=" + t.id + "&data=" + t + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
+				console.log("success");
 				$scope.testdata =  $sce.trusted(data);
+				t.editMode = false;
 			}).error(function(data, status, headers, config) {
 				$scope.errordata =  $sce.trusted(data);
 			});

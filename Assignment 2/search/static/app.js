@@ -12,10 +12,6 @@ paySafeApp.config(['$routeProvider',
 				templateUrl: 'partials/transaction-list.html',
 				controller: 'TransactionListCtrl'
 			}).
-			when('/show/:id/', {
-				templateUrl: 'partials/transaction_show.html',
-				controller: 'TransactionShowCtrl'
-			}).
 			when('/search', {
 				templateUrl: 'partials/transaction_search.html',
 				controller: 'TransactionSearchCtrl'

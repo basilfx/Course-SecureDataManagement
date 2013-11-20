@@ -3,8 +3,8 @@ userCrypto = new Crypto("key");
 
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
-paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location','$sce',
-	function($scope,$http, $location,$sce) {
+paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location',
+	function($scope,$http, $location) {
 		$scope.transactions = [];
 		$scope.testdata = "";
 		$scope.errordata = "";
@@ -17,12 +17,10 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			else{
 				for (i = 0; i < data.length; i++){
 					var transaction = data[i];
-
-					var decrypted_data = /*userCrypto.decrypt(*/transaction["data"]/*)*/;
-					console.log(decrypted_data);
+					var decrypted_data = /*userCrypto.decrypt(*/JSON.parse(transaction["data"])/*)*/;
 					decrypted_data.id = transaction.id;
 					decrypted_data.editMode = false;
-					$scope.transactions.push(JSON.parse(decrypted_data));
+					$scope.transactions.push(decrypted_data);
 				}
 			}
 		}).error(function(data, status, headers, config) {
@@ -40,14 +38,12 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$http({
 			    method: 'POST',
 			    url: '/search/createtransaction/',
-			    data: "id=" + t.id + "&data=" + t + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
+			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
-				console.log("success");
-				$scope.testdata =  $sce.trusted(data);
 				t.editMode = false;
 			}).error(function(data, status, headers, config) {
-				$scope.errordata =  $sce.trusted(data);
+				$scope.errordata =  data;
 			});
 		}
 		$scope.deleteTransaction = function(t){
@@ -60,10 +56,8 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			    url: '/search/deletetransaction/',
 			    data: "id=" + t.id,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-			}).success(function(data, status, headers, config) {
-				$scope.testdata =  $sce.trusted(data);
 			}).error(function(data, status, headers, config) {
-				$scope.errordata =  $sce.trusted(data);
+				$scope.errordata =  data;
 			});
 		}
 	}

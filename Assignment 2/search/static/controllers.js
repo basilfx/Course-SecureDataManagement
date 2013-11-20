@@ -18,15 +18,13 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 				for (i = 0; i < data.length; i++){
 					var transaction = data[i];
 
-					
 					var decrypted_data = /*userCrypto.decrypt(*/transaction["data"]/*)*/;
 					decrypted_data.id = transaction.id;
 					decrypted_data.date = new Date(decrypted_data.date);
 					decrypted_data.editMode = false;
 					decrypted_data.update = $scope.updateTransaction;
 					decrypted_data.delete = $scope.deleteTransaction;
-					console.log(decrypted_data);
-					$scope.transactions.push(decrypted_data);
+					$scope.transactions.push(JSON.parse(decrypted_data));
 				}
 			}
 		}).error(function(data, status, headers, config) {

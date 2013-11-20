@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% trans 'Create PHR record' %}
+{% endblock title %}
+
+{% block content %}
+    <p>
+        {% blocktrans %}
+            Please enter the PHR server address and a record name. When clicking
+            submit, a new record will be created on the PHR server.
+        {% endblocktrans %}
+    </p>
+
+    <div class="row">
+        <div class="col-md-6">
+            {% crispy form %}
+        </div>
+    </div>
+{% endblock content %}

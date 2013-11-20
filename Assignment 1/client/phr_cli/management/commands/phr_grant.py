@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
+from phr_cli import actions
 from phr_cli.utils import unpack_arguments, str_upper, str_upper_split
 from phr_cli.data_file import DataFile
 
@@ -15,12 +16,14 @@ class Command(BaseCommand):
 
         # Open data file
         storage = DataFile(storage_file, load=True)
-        instance = storage.get_protocol()
 
-        # Encrypt
-        key = instance.keys_to_base64(storage.public_keys[category])
-        data = instance.encrypt(key, storage.public_keys, category, parties)
+        # Send key
+        try:
+            key_id = actions.grant(storage, category, parties)
+        except jsonrpclib.ProtocolError:
+            raise CommandError("Unable to communicate to remote server")
+        except ValueError:
+            raise CommandError(e)
 
-        # Upload to server
-        api = jsonrpclib.Server(storage.host)
-        key_id = api.add_key(storage.record_id, category, data)
+        # Done
+        self.stdout.write("Granted key for category %s with key ID %d" % (category, record_item_id))

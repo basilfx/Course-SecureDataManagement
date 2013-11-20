@@ -1,7 +1,7 @@
 // Configuratie app
 var paySafeApp = angular.module('paySafeApp', [
 	'ngRoute', '$strap.directives', 
-	'paySafeControllers'
+	'paySafeApp.controllers'
 ]);
 
 // Routes

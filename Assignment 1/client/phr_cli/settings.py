@@ -14,12 +14,7 @@ ROOT_DIR = os.path.abspath(os.path.join(CONF_DIR, "../"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(ROOT_DIR, 'database.db'),
-        #'ENGINE': 'django.db.backends.mysql',
-        #'NAME': 'phr',
-        #'USER': 'phr',
-        #'PASSWORD': 'phr',
-        #'HOST': '/tmp/mysql.sock'
+        'NAME': os.path.join(ROOT_DIR, 'database.db')
     }
 }
 
@@ -84,6 +79,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -137,8 +133,22 @@ INSTALLED_APPS = (
     'phr_cli',
 
     # Third-party
+    'crispy_forms',
     'django_extensions',
+    'djangobower'
 )
+
+# Bower related
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, 'static/')
+
+BOWER_INSTALLED_APPS = (
+    'bootstrap',
+    'lesscss',
+    'jquery',
+)
+
+# Crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

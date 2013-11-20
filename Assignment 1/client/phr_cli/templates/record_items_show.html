@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Decrypted PHR record item' %}
+{% endblock title %}
+
+{% block content %}
+    {% if message %}
+        <p>
+            {% trans 'Below is the content of the record item.' %}
+        </p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">{% trans 'Title' %}</label>
+                    <span class="form-control">{{ title }}</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="exampleInputEmail1">{% trans 'Sender' %}</label>
+                    <span class="form-control">{{ sender }}</span>
+                </div>
+
+                {% if attachment %}
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">{% trans 'Attachment' %}</label>
+                        <span class="form-control"><a href="{{ attachment_data }}" target="_blank">{{ attachment_name }}</a> ({{ attachment_size }} bytes)</span>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="exampleInputEmail1">{% trans 'Message' %}</label>
+                    <span class="form-control">{{ message }}</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p class="alert alert-danger">
+            {% trans 'Unable to decrypt the message.' %}
+        </p>
+    {% endif %}
+{% endblock content %}

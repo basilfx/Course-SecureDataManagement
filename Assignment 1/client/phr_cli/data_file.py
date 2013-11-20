@@ -19,6 +19,8 @@ class DataFile(object):
 
             # Record related
             ("record_id", int, None),
+            ("record_name", basestring, None),
+            ("record_role", basestring, None),
 
             # Key related
             ("master_keys", dict, "key"),
@@ -32,7 +34,7 @@ class DataFile(object):
 
         @param data_file Output file name
         @param load Boolean to indicate if the load() method should be invoked
-               directly
+            directly.
         """
 
         self.meta = self.Meta()

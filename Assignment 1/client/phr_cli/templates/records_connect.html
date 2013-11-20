@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% trans 'Connect to PHR record' %}
+{% endblock title %}
+
+{% block content %}
+    <p>
+        {% trans 'Please enter the PHR server address and paste the key data' %}
+    </p>
+
+    <div class="row">
+        <div class="col-md-6">
+            {% crispy form %}
+        </div>
+    </div>
+{% endblock content %}

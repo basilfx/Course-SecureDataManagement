@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Share secret keys' %}
+{% endblock title %}
+
+{% block content %}
+
+    <p>
+        {% blocktrans %}
+            Copy the keys below and share them with others to connect them to
+            this PHR. We recommend to share the keys via a
+            <a href="http://tools.ietf.org/html/rfc1149">RFC 1149</a> certified
+            service.
+        {% endblocktrans %}
+    </p>
+
+    <p class="alert alert-danger">
+        {% blocktrans %}
+            The keys below should be handled with care. They allow others to
+            connect to this PHR and may provide read access to parts of this
+            PHR.
+        {% endblocktrans %}
+    </p>
+
+    {% for secret_key in secret_keys %}
+        <h2>
+            Secret key for {{ secret_key.party }}
+
+            <small class="pull-right">{{ secret_key.categories|join:", " }}</small>
+        </h2>
+
+        <textarea class="form-control" rows="5">{{ secret_key.data }}</textarea>
+    {% endfor %}
+
+{% endblock content %}

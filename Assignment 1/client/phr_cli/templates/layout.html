@@ -1,0 +1,127 @@
+{% load i18n static %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+    <head>
+        <meta charset="utf-8">
+        <title>PHR Demo</title>
+
+        <meta name="description" content="PHR demo system for the Secure Data Management course">
+        <meta name="author" content="Bas Stottelaar, Rick van Gaalen, Jeroen Senden, Erwin Middelesch">
+
+        {% if UNCOMPILED_RESOURCES %}
+            <!-- Less -->
+            <link rel="stylesheet/less" href="{% static 'bootstrap/less/bootstrap.less' %}">
+            <script type="text/javascript" src="{% static 'lesscss/dist/less-1.4.2.less' %}"></script>
+        {% else %}
+            <!-- CSS -->
+            <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
+        {% endif %}
+
+        <!-- jQuery -->
+        {% if UNCOMPILED_RESOURCES %}
+            <script type="text/javascript" src="{% static 'jquery/jquery.js' %}"></script>
+        {% else %}
+            <script type="text/javascript" src="{% static 'jquery/jquery.min.js' %}"></script>
+        {% endif %}
+
+        <!-- Favicons -->
+        <link rel="shortcut icon" type="image/png" href="{{ STATIC_URL }}img/favicon.png">
+
+        {% block head %}{% endblock head %}
+    </head>
+    <body>
+        {% block navbar %}
+            <div id="top-nav" class="navbar navbar-inverse navbar-static-top">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-toggle"></span>
+                    </button>
+                    <a class="navbar-brand" href="{% url 'phr_cli.views.index' %}">PHR Demo</a>
+
+                    {% if data_file %}
+                        <ul class="nav navbar-nav">
+                            <li><a href="{% url 'phr_cli.views.record_items_list' %}">Record items</a></li>
+
+                            {% if data_file.record_role == "OWNER" %}
+                                <li><a href="{% url 'phr_cli.views.records_share' %}">Share record</a></li>
+                                <li><a href="{% url 'phr_cli.views.keys_grant' %}">Grant access</a></li>
+                            {% else %}
+                                <li><a href="{% url 'phr_cli.views.keys_retrieve' %}">Retrieve access</a></li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+                <div class="navbar-collapse collapse pull-right">
+                    {% if data_file %}
+                        <p class="navbar-text">
+                            <i class="glyphicon glyphicon-user"></i> {{ data_file.record_role }}
+                        </p>
+                    {% endif %}
+
+                    <ul class="nav navbar-nav">
+                        {% if data_file %}
+                            <li><a href="{% url 'phr_cli.views.logout' %}">Log out</a></li>
+                        {% else %}
+                            <li><a href="{% url 'phr_cli.views.records_select' %}">Log in</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        {% endblock navbar %}
+
+        <div class="container">
+            {% block notifications %}
+                <!-- Notification header -->
+
+                {% if messages %}
+                    <div class="notifications center top alert alert-info"></div>
+
+                    <script type="text/javascript">
+                        $(document).ready(function() {
+                            var index = 0;
+                            var messages = [
+                                {% for message in messages %}
+                                    "{{ message }}",
+                                {% endfor %}
+                            ];
+
+                            function show(index) {
+                                if (index < messages.length) {
+                                    $(".notifications").text(messages[index])
+                                                       .show()
+                                                       .delay(2500)
+                                                       .hide({
+                                                            complete: function() {
+                                                                show(index + 1);
+                                                            }
+                                                       })
+                                }
+                            }
+
+                            // Show first one
+                            show(0);
+                        });
+                    </script>
+                {% endif %}
+            {% endblock notifications %}
+
+            <!-- Page title -->
+            <h1>
+                {% block title %}{% endblock title %}
+
+                <small class="pull-right">{% block buttons %}{% endblock buttons %}</small>
+            </h1>
+            <hr>
+
+            <!-- Actual content -->
+            {% block content %}{% endblock content %}
+        </div>
+
+        {% if UNCOMPILED_RESOURCES %}
+            <script type="text/javascript" src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
+        {% else %}
+            <script type="text/javascript" src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+        {% endif %}
+    </body>
+</html>

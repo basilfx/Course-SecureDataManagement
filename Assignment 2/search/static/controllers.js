@@ -1,7 +1,7 @@
 //// FIXME !!!!
 userCrypto = new Crypto("key");
 
-var paySafeControllers = angular.module('paySafeControllers', []);
+var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
 paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location','$sce',
 	function($scope,$http, $location,$sce) {

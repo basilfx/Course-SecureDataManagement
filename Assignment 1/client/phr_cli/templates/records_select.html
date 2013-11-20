@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% trans 'Welcome' %}
+{% endblock title %}
+
+{% block content %}
+    {% if form.fields.data_file.choices|length > 0 %}
+        <p>
+            {% trans 'Select a data file to work with.' %}
+        </p>
+
+        <div class="row">
+            <div class="col-md-6">
+                {% crispy form %}
+            </div>
+        </div>
+
+        <p>
+            {% trans 'New here?' %}
+        </p>
+    {% else %}
+        <p>
+            {% trans 'Please create a new PHR record, or connect to an existing one.' %}
+        </p>
+    {% endif %}
+
+    <a href="{% url 'phr_cli.views.records_create' %}" class="btn btn-default" role="button">
+        {% trans 'Create a new PHR record' %}
+    </a>
+    <a href="{% url 'phr_cli.views.records_connect' %}" class="btn btn-default" role="button">
+        {% trans 'Connect to a PHR record' %}
+    </a>
+{% endblock content %}

@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Index' %}
+{% endblock title %}
+
+{% block content %}
+
+    <h3>Server</h3>
+
+    <ul>
+        <li>Host: {{ data_file.host }}</li>
+        <li>Categories: {{ data_file.categories|join:", " }}</li>
+        <li>Parties: {{ data_file.parties|join:", " }}</li>
+    </ul>
+
+    <h3>Record</h3>
+
+    <ul>
+        <li>ID: {{ data_file.record_id }}</li>
+        <li>Name: {{ data_file.record_name }}</li>
+        <li>Role: {{ data_file.record_role }}</li>
+    </ul>
+
+    <h3>Keys</h3>
+
+    <ul>
+        <li>Master keys: {{ data_file.master_keys|length }}</li>
+        <li>Public keys: {{ data_file.public_keys|length }}</li>
+        <li>Secret keys: {{ data_file.secret_keys|length }}</li>
+    </ul>
+
+{% endblock content %}

@@ -36,11 +36,11 @@ def transactions(request):
             data.append(model_to_dict(transaction, fields=["id", "data"]))
         data = json.dumps(data, indent=4)
 
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
     else:
         data = {"login_successful": False};
         data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
 
 @csrf_exempt
 def do_login(request):
@@ -54,15 +54,15 @@ def do_login(request):
             client_bucket = client.client_bucket
             data = {"login_successful": True};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
         else:
             data = {"login_successful": False};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
     else:
         data = {"login_successful": False};
         data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
 
 @csrf_exempt
 def createTransaction(request):
@@ -79,7 +79,7 @@ def createTransaction(request):
             t.save()
             data = {"message": "Transaction created"};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
         else:
             t = Transaction.objects.get(id=int(id), client_bucket=client_bucket)
             t.data = data
@@ -88,11 +88,11 @@ def createTransaction(request):
             t.save()
             data = {"message": "Transaction updated"};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
     else:
         data = {"login_successful": False};
         data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
 
 @csrf_exempt
 def deleteTransaction(request):
@@ -106,15 +106,15 @@ def deleteTransaction(request):
             t.delete()
             data = {"message": "Transaction deleted"};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
         else:
             data = {"message": "Transaction not deleted"};
             data = json.dumps(data, indent=4)
-            return HttpResponse(data,mimetype='application/json')
+            return HttpResponse(data,content_type='application/json')
     else:
         data = {"login_successful": False};
         data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
 
 @csrf_exempt
 def register(request):
@@ -128,7 +128,7 @@ def register(request):
     client.save()
     data = {"registered_successful": True};
     data = json.dumps(data, indent=4)
-    return HttpResponse(data,mimetype='application/json')
+    return HttpResponse(data,content_type='application/json')
 
 def search_amount_date(request):
     if request.user.is_authenticated():
@@ -171,8 +171,8 @@ def search_amount_date(request):
             data.append(model_to_dict(transaction, fields=["id", "data"]))
         data = json.dumps(data, indent=4)
 
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')
     else:
         data = {"login_successful": False};
         data = json.dumps(data, indent=4)
-        return HttpResponse(data,mimetype='application/json')
+        return HttpResponse(data,content_type='application/json')

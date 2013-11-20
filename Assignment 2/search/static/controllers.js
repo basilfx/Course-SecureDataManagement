@@ -27,10 +27,12 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$scope.errordata = data;
 		});
 
-		$scope.createTransaction = function() { 
+		$scope.createTransaction = function() {
+			var now = new Date(); 
 			$scope.transactions.push({
 				id: -1, sender: "", receiver: "", amount: 0,
-				description: "", date: new Date(), editMode: true, update: $scope.updateTransaction , delete: $scope.deleteTransaction
+				description: "", date: now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay()
+				, editMode: true
 			});
 		}
 
@@ -59,6 +61,10 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			}).error(function(data, status, headers, config) {
 				$scope.errordata =  data;
 			});
+		}
+		// Checks whether any transaction is currently edited
+		$scope.isEditMode = function() {
+			return $scope.transactions.reduce(function(prev, curr) { return prev.editMode || curr.editMode; }, false);
 		}
 	}
 ]);
@@ -95,7 +101,6 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 						var transaction = data[i];						
 						var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
 						decrypted_data.id = transaction.id;
-						decrypted_data.date = new Date(decrypted_data.date);
 						decrypted_data.editMode = false;
 						decrypted_data.update = $scope.updateTransaction;
 						decrypted_data.delete = $scope.deleteTransaction;

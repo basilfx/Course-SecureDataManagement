@@ -71,6 +71,17 @@ function dateToBucket(date){
     return indexToBucketValue(date_bucket.dateToIndex(date),"date");
 }
 
+function stringToTimestamp(date_str) {
+	if(date_str) {
+		var props = date_str.split("-");
+		var date = new Date();
+		date.setYear(parseInt(props[0]));
+		date.setMonth(parseInt(props[1]));
+		date.setYear(parseInt(props[2]));
+		return date.valueOf();
+	}	
+}
+
 var search_form = {
 	amount: {
 		operations: [
@@ -82,7 +93,7 @@ var search_form = {
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount > parseInt(search_form.amount.single_amount);
-			}
+			},
 		},
 		{	
 			name: "Less than",
@@ -92,7 +103,7 @@ var search_form = {
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount < search_form.amount.single_amount;
-			}
+			},
 		},
 		{
 			name: "Equal to",
@@ -124,7 +135,7 @@ var search_form = {
 				return date_bucket.generateDateQuery(search_form.date.single_date.date, date_bucket.max);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() > new Date(search_form.date.single_date.date).valueOf();
+				return stringToTimestamp(transaction.date) > stringToTimestamp(search_form.date.single_date);
 			}
 		},
 		{	
@@ -134,7 +145,7 @@ var search_form = {
 				return date_bucket.generateDateQuery(date_bucket.min, search_form.date.single_date.date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() < new Date(search_form.date.single_date.date).valueOf();
+				return stringToTimestamp(transaction.date) < stringToTimestamp(search_form.date.single_date);
 
 			}
 		},
@@ -145,7 +156,7 @@ var search_form = {
 				return date_bucket.dateToIndex(search_form.date.single_date.date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() == new Date(search_form.date.single_date.date).valueOf();
+				return stringToTimeStamp(transaction.date) == stringToTimestamp(search_form.date.single_date);
 			}
 		},
 		{
@@ -155,7 +166,8 @@ var search_form = {
 				return date_bucket.generateDateQuery(search_form.date.from_date.date, search_form.date.to_date.date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() > new Date(search_form.date.from_date.date).valueOf() && transaction.date.valueOf() < new Date(search_form.date.to_date.date).valueOf();
+				return stringToTimestamp(transaction.date) > stringToTimestamp(search_form.date.from_date) &&
+						stringToTimestamp(transaction.date) < stringToTimestamp(search_form.date.to_date);
 			}
 		}]
 	},

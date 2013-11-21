@@ -1,0 +1,78 @@
+<h1>Search</h1>
+
+<form class="form-inline" role="form">
+  <div class="row">
+    <div class="col-md-6"><label for="amountOp">By amount</label></div>
+    <div class="col-md-6"><label for="dateOp">By date</label></div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group col-xs-4">
+        <select class="form-control" ng-model="search_form.amount.operation" ng-options="operation.name for operation in search_form.amount.operations" ng-change="search()" name="amountOp"></select>
+      </div>
+      <div class="form-group col-xs-3" ng-hide="search_form.amount.operation.is_between">
+        <input type="number" ng-model="search_form.amount.single_amount" class="form-control" placeholder="Amount" step="0.01" ng-change="search()"/>
+      </div>
+      <span ng-hide="!search_form.amount.operation.is_between">
+        <div class="form-group col-xs-3">
+          <input type="number" ng-model="search_form.amount.from_amount" class="form-control" placeholder="From"  step="0.01" ng-change="search()"/>
+        </div>
+        <div class="form-group col-xs-3">
+          <input type="number" ng-model="search_form.amount.to_amount" class="form-control" placeholder="To" step="0.01" ng-change="search()"/>
+        </div>
+      </span>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group col-xs-3">    
+        <select class="form-control" ng-model="search_form.date.operation" ng-options="operation.name for operation in search_form.date.operations" ng-change="search()" name="dateOp"></select>
+      </div>
+      <div class="form-group col-xs-4" ng-hide="search_form.date.operation.is_between">
+        <input class="form-control" type="date" ng-model="search_form.date.single_date.date" ng-change="search()"/>
+      </div>
+      <span ng-hide="!search_form.date.operation.is_between">
+        <div class="form-group col-xs-4">
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.to_date.date" ng-change="search()"/>
+        </div>
+        <div class="form-group col-xs-4">
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.from_date.date" ng-change="search()"/>
+        </div>
+      </span>
+    </div>
+  </div>
+</form>
+
+<br/>
+
+<div id="results" class="panel panel-default" ng-show="transactions.length > 0">
+  <div class="panel-heading">Results</div>
+  <div class="panel-body">We found <ng-pluralize count="transactions.length" when="{'one': 'one corresponding transaction.', 'other': '{} corresponding transactions.'}"></div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Sender</th>
+        <th>Receiver</th>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="transaction in transactions">
+        <td>{{transaction.id}}</td>
+        <td>{{transaction.sender}}</td>
+        <td>{{transaction.receiver}}</td>
+        <td>{{transaction.amount}}</td>
+        <td>{{transaction.description}}</td>
+        <td>{{transaction.date.getDate()}}/{{transaction.date.getMonth() + 1}}/{{transaction.date.getFullYear()}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="no-results" class="panel panel-default" ng-show="transactions.length == 0 && search_form.is_ready_for_search()">
+  <div class="panel-heading">No results found</div>
+  <div class="panel-body">
+    We found no transactions matching your search criteria. Please try a different query.</div>
+</div>

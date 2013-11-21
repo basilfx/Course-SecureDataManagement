@@ -6,6 +6,9 @@
 */*/media/
 *.py[cod]
 
+# PIP virtualenv
+sdm/
+
 #databases
 *.sqlite3
 

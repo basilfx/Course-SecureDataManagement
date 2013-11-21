@@ -15,7 +15,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr ng-repeat="t in transactions track by t.date">
+		<tr ng-repeat="t in transactions">
 			<td>
 				<div ng-show="!t.editMode">{{t.sender}}</div>
 				<div ng-show="t.editMode"><input class="form-control" type="text" ng-model="t.sender"/></div>

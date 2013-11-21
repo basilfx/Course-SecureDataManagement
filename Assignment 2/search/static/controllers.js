@@ -40,7 +40,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$http({
 			    method: 'POST',
 			    url: '/search/createtransaction/',
-			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
+			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				t.editMode = false;
@@ -101,7 +101,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 					else{
 						for (i = 0; i < data.length; i++){
 							var transaction = data[i];						
-							var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
+							var decrypted_data =/* userCrypto.decrypt(*/JSON.parse(transaction['data']) /*)*/;
 							decrypted_data.id = transaction.id;
 							decrypted_data.editMode = false;
 							decrypted_data.update = $scope.updateTransaction;

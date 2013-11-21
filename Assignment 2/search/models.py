@@ -5,8 +5,8 @@ from django.contrib.auth.models import User
 
 class Transaction(models.Model):
 	data = models.CharField(max_length=1024)
-	amount_bucket = models.IntegerField()
-	miliseconds_bucket = models.IntegerField()
+	amount_bucket = models.CharField(max_length=1)
+	date_bucket = models.CharField(max_length=1)
 	client_bucket = models.IntegerField()
 
 class Client(models.Model):

@@ -14,7 +14,13 @@ import json
 import uuid
 import base64
 
-def resolve_data_file(func):
+def resolve_storage(func):
+    """
+    Decorator to resolve the data_file from the session object and to initialize
+    a storage object. If the data_file is not present, redirect to the 'login'
+    page.
+    """
+
     @wraps(func)
     def _inner(request, *args, **kwargs):
         data_file = request.session.get("data_file", False)
@@ -25,7 +31,7 @@ def resolve_data_file(func):
         # Try to load file
         try:
             data_file = os.path.join(settings.ROOT_DIR, "data", data_file)
-            data_file = DataFile(data_file, load=True)
+            storage = DataFile(data_file, load=True)
         except IOError:
             return redirect("phr_cli.views.records_select")
 
@@ -34,19 +40,19 @@ def resolve_data_file(func):
 
     return _inner
 
-@resolve_data_file
-def index(request, data_file):
+@resolve_storage
+def index(request, storage):
     return render(request, "index.html", locals())
 
-@resolve_data_file
-def records_share(request, data_file):
+@resolve_storage
+def records_share(request, storage):
     secret_keys = []
-    instance = data_file.get_protocol()
+    instance = storage.get_protocol()
 
-    for party, keys in data_file.secret_keys.iteritems():
+    for party, keys in storage.secret_keys.iteritems():
         # Store record ID with the key, so the other knows the record we are
         # talking about
-        data = instance.keys_to_base64((data_file.record_id, party, keys))
+        data = instance.keys_to_base64((storage.record_id, party, keys))
 
         secret_keys.append({
             "categories": keys.iterkeys(),
@@ -56,14 +62,14 @@ def records_share(request, data_file):
 
     return render(request, "records_share.html", locals())
 
-@resolve_data_file
-def record_items_create(request, data_file):
-    categories = list(getattr(data_file, "public_keys", {}).iterkeys())
+@resolve_storage
+def record_items_create(request, storage):
+    categories = list(getattr(storage, "public_keys", {}).iterkeys())
 
     # Create form with available categories and parties
     form = EncryptForm(
         categories,
-        data_file.parties,
+        storage.parties,
         data=request.POST or None,
         files=request.FILES or None
     )
@@ -83,14 +89,14 @@ def record_items_create(request, data_file):
         # Simple JSON used as container
         data = json.dumps([
             form.cleaned_data["title"],
-            data_file.record_role,
+            storage.record_role,
             [attachment_size, attachment_name, attachment_data] if attachment else None,
             form.cleaned_data["message"]
         ])
 
         # Encrypt the data
         record_item_id = actions.encrypt(
-            data_file,
+            storage,
             form.cleaned_data["category"],
             form.cleaned_data["parties"],
             data,
@@ -107,14 +113,14 @@ def record_items_create(request, data_file):
 
     return render(request, "record_items_create.html", locals())
 
-@resolve_data_file
-def record_items_list(request, data_file):
-    record_item_ids = actions.list_record_items(data_file)
-    record_items = actions.get_record_items(data_file, record_item_ids)
-    instance = data_file.get_protocol()
+@resolve_storage
+def record_items_list(request, storage):
+    record_item_ids = actions.list_record_items(storage)
+    record_items = actions.get_record_items(storage, record_item_ids)
+    instance = storage.get_protocol()
 
     for record_item in record_items:
-        data = actions.decrypt(data_file, record_item=record_item)
+        data = actions.decrypt(storage, record_item=record_item)
 
         if data:
             data = json.loads(data)
@@ -124,9 +130,9 @@ def record_items_list(request, data_file):
 
     return render(request, "record_items_list.html", locals())
 
-@resolve_data_file
-def record_items_show(request, data_file, record_item_id):
-    data = actions.decrypt(data_file, record_item_id)
+@resolve_storage
+def record_items_show(request, storage, record_item_id):
+    data = actions.decrypt(storage, record_item_id)
 
     if data:
         title, sender, attachment, message = json.loads(data)
@@ -136,21 +142,21 @@ def record_items_show(request, data_file, record_item_id):
 
     return render(request, "record_items_show.html", locals())
 
-@resolve_data_file
-def keys_grant(request, data_file):
-    categories = list(getattr(data_file, "public_keys", {}).iterkeys())
+@resolve_storage
+def keys_grant(request, storage):
+    categories = list(getattr(storage, "public_keys", {}).iterkeys())
 
     # Create form with available categories and parties
     form = GrantForm(
         categories,
-        data_file.parties,
+        storage.parties,
         data=request.POST or None
     )
 
     # Handle request
     if request.method == "POST" and form.is_valid():
         if form.cleaned_data["access"] == "W":
-            key_id = actions.grant(data_file, form.cleaned_data["category"], form.cleaned_data["parties"])
+            key_id = actions.grant(storage, form.cleaned_data["category"], form.cleaned_data["parties"])
 
             if key_id:
                 messages.info(request,
@@ -170,13 +176,13 @@ def keys_grant(request, data_file):
     # Render template
     return render(request, "keys_grant.html", locals())
 
-@resolve_data_file
-def keys_retrieve(request, data_file):
-    new_categories = actions.retrieve(data_file)
+@resolve_storage
+def keys_retrieve(request, storage):
+    new_categories = actions.retrieve(storage)
 
     # If any change, save it
     if len(new_categories) > 0:
-        data_file.save()
+        storage.save()
 
     # Render template
     return render(request, "keys_retrieve.html", locals())
@@ -185,7 +191,7 @@ def records_select(request):
     form = SelectDataFileForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        request.session["data_file"] = form.cleaned_data["data_file"]
+        request.session["data_file"] = form.cleaned_data["storage"]
         messages.info(request, "Welcome back!")
 
         return redirect("phr_cli.views.index")
@@ -211,7 +217,7 @@ def records_create(request):
         storage.save()
 
         # Done
-        request.session["data_file"] = new_data_file
+        request.session["data_file"] = data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_create.html", locals())
@@ -235,7 +241,7 @@ def records_connect(request):
         storage.save()
 
         # Done
-        request.session["data_file"] = new_data_file
+        request.session["storage"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_connect.html", locals())

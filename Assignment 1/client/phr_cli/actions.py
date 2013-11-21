@@ -169,7 +169,15 @@ def decrypt(storage, record_item_id=None, record_item=None):
 
 def grant(storage, category, parties):
     """
+    Encrypt and store a specific key on the server to be decrypted by another
+    party. The sender should already have a decrypt key for the same category.
+
     @param storage Data file to work with.
+    @param category The category of the key to store.
+    @param parties List of parties allowed to decrypt the key.
+    @return ID of the remote key
+
+    @throws ValueError if key cannot be uploaded
     """
     instance = storage.get_protocol()
 
@@ -190,7 +198,14 @@ def grant(storage, category, parties):
 
 def retrieve(storage, **lookups):
     """
+    Naive method to import all remote keys available which can be decrypted.
+    Extra lookups can be specified to filter remote keys
+
     @param storage Data file to work with.
+    @param lookups Django ORM style lookups.
+    @return List of categories where keys have been imported for
+
+    @throws ValueError if search or retrieve failed.
     """
     instance = storage.get_protocol()
 
@@ -199,7 +214,7 @@ def retrieve(storage, **lookups):
     key_ids = api.find_keys(storage.record_id, lookups)
 
     if not key_ids:
-        return
+        raise ValueError("Could not search for remote keys")
 
     # Process each ID
     new_categories = []
@@ -239,7 +254,11 @@ def retrieve(storage, **lookups):
 
 def get_record_items(storage, record_item_ids):
     """
+    Resolve a list of record items IDs from the remote server.
+
     @param storage Data file to work with.
+    @param record_item_ids List of IDs to resolve.
+    @return List of resolved record items.
     """
 
     api = jsonrpclib.Server(storage.host)
@@ -247,12 +266,16 @@ def get_record_items(storage, record_item_ids):
 
 def list_record_items(storage, **lookups):
     """
+
+    @param lookups Django ORM style lookups.
     @param storage Data file to work with.
+    @return List of IDs satisfying the lookup.
+
+    @throws ValueError if search or retrieve failed.
     """
 
     api = jsonrpclib.Server(storage.host)
     record_item_ids = api.find_record_items(storage.record_id, lookups)
-    print record_item_ids
 
     if record_item_ids == False:
         raise ValueError("Unable to retrieve record from server")

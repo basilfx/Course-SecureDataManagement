@@ -185,8 +185,8 @@ var search_form = {
 	},
 
 	is_valid_result: function(transaction){
-		is_valid_amount = !search_form.amount.enabled || search_form.amount.operation.is_valid_result(transaction);
-		is_valid_date = !search_form.date.enabled || search_form.date.operation.is_valid_result(transaction);
+		is_valid_amount = search_form.amount.operation.is_valid_result(transaction);
+		is_valid_date = search_form.date.operation.is_valid_result(transaction);
 		return is_valid_amount && is_valid_date;
 	}
 };

@@ -27,14 +27,14 @@
         <select class="form-control" ng-model="search_form.date.operation" ng-options="operation.name for operation in search_form.date.operations" ng-change="search()" name="dateOp"></select>
       </div>
       <div class="form-group col-xs-4" ng-hide="search_form.date.operation.is_between">
-        <input class="form-control" type="date" ng-model="search_form.date.single_date.date" ng-change="search()"/>
+        <input class="form-control" type="date" ng-model="search_form.date.single_date" ng-change="search()"/>
       </div>
       <span ng-hide="!search_form.date.operation.is_between">
         <div class="form-group col-xs-4">
-          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.to_date.date" ng-change="search()"/>
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.to_date" ng-change="search()"/>
         </div>
         <div class="form-group col-xs-4">
-          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.from_date.date" ng-change="search()"/>
+          <input class="form-control" type="date" ng-hide="!search_form.date.operation.is_between" ng-model="search_form.date.from_date" ng-change="search()"/>
         </div>
       </span>
     </div>

@@ -96,9 +96,47 @@ def connect(storage, host, key_data):
     # Done
     return record["id"]
 
+def encrypt(storage, category, parties, message):
+    """
+    Given a message, a category and parties (receivers), encrypt a message and
+    upload it to the PHR server as a new record item.
+
+    @param storage Data file to work with.
+    @param category Category of message. Determines the right encryption key.
+    @param parties Receiving parties.
+    @param message Arbtrary message. Can be binary.
+    @return The record item
+
+    @throws ValueError if message cannot be uploaded.
+    """
+    instance = storage.get_protocol()
+
+    # Encrypt
+    data = instance.encrypt(message, storage.public_keys, category, parties)
+
+    # Upload to server
+    api = jsonrpclib.Server(storage.host)
+    record_item_id = api.add_record_item(storage.record_id, category, data)
+
+    if not record_item_id:
+        raise ValueError("Failed uploading record item")
+
+    # Done
+    return record_item_id
+
 def decrypt(storage, record_item_id=None, record_item=None):
     """
+    Decrypt a message. Message can be given or an ID can be specified. In the
+    latter case, the message will be downloaded from the server first. The
+    decryption is oppertunistic and will try each key in the key chain until it
+    succeeds.
+
     @param storage Data file to work with.
+    @param record_item_id ID of the (remote) record
+    @param record_item Pre downloaded message
+    @return Decrypted message
+
+    @throws ValueError if message could not be downloaded
     """
     instance = storage.get_protocol()
 
@@ -106,6 +144,9 @@ def decrypt(storage, record_item_id=None, record_item=None):
     if not record_item_id is None:
         api = jsonrpclib.Server(storage.host)
         record_item = api.get_record_item(storage.record_id, record_item_id)
+
+        if not record_item:
+            raise ValueError("Downloading record item failed")
 
     # Try to decrypt the key
     success = False
@@ -125,25 +166,6 @@ def decrypt(storage, record_item_id=None, record_item=None):
         return data
     else:
         return None
-
-def encrypt(storage, category, parties, message):
-    """
-    @param storage Data file to work with.
-    """
-    instance = storage.get_protocol()
-
-    # Encrypt
-    data = instance.encrypt(message, storage.public_keys, category, parties)
-
-    # Upload to server
-    api = jsonrpclib.Server(storage.host)
-    record_item_id = api.add_record_item(storage.record_id, category, data)
-
-    if not record_item_id:
-        raise ValueError("Failed uploading record item")
-
-    # Done
-    return record_item_id
 
 def grant(storage, category, parties):
     """

@@ -40,7 +40,7 @@ var date_bucket = {
 	},
 
     dateToIndex: function(date_str) {
-        return parseInt(date_str.split("-")[1]) - 1;
+        return new Date(date_str).getMonth();
     }
 };
 

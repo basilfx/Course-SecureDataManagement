@@ -40,7 +40,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			$http({
 			    method: 'POST',
 			    url: '/search/createtransaction/',
-			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amount_bucket.amountToIndex(t.amount) + "&date_bucket=" + date_bucket.dateToIndex(t.date),
+			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				t.editMode = false;
@@ -106,7 +106,6 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 							decrypted_data.editMode = false;
 							decrypted_data.update = $scope.updateTransaction;
 							decrypted_data.delete = $scope.deleteTransaction;
-							decrypted_data.date = new Date(decrypted_data.date);
 							if($scope.search_form.is_valid_result(decrypted_data)){
 								$scope.transactions.push(decrypted_data);
 							}						

@@ -75,7 +75,7 @@ def createTransaction(request):
         amount_bucket = request.POST.__getitem__('amount_bucket')
         date_bucket = request.POST.__getitem__('date_bucket')
         if id == "-1" or id == "undefined":
-            t = Transaction(data=data, amount_bucket=amount_bucket,miliseconds_bucket=date_bucket,client_bucket=client_bucket)
+            t = Transaction(data=data, amount_bucket=amount_bucket,date_bucket=date_bucket,client_bucket=client_bucket)
             t.save()
             data = {"message": "Transaction created"};
             data = json.dumps(data, indent=4)
@@ -147,24 +147,24 @@ def search_amount_date(request):
             query = amounts.split(',')
             amount_list = []
             for number in query:
-                amount_list.append(int(number))
+                amount_list.append(number)
             query = dates.split(',')
             date_list = []
             for number in query:
-                date_list.append(int(number))
-            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list, miliseconds_bucket__in=date_list)
+                date_list.append(number)
+            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list, date_bucket__in=date_list)
         elif amounts:
             query = amounts.split(',')
             amount_list = []
             for number in query:
-                amount_list.append(int(number))
+                amount_list.append(number)
             transactions = Transaction.objects.filter(client_bucket=client.client_bucket,amount_bucket__in=amount_list)
         else:
             query = dates.split(',')
             date_list = []
             for number in query:
-                date_list.append(int(number))
-            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,miliseconds_bucket__in=date_list)
+                date_list.append(number)
+            transactions = Transaction.objects.filter(client_bucket=client.client_bucket,date_bucket__in=date_list)
 
         data = []
         for transaction in transactions:

@@ -25,14 +25,14 @@ var amount_bucket = {
 	}	
 };
 var date_bucket = {
-	max: 1387461777260, //1 Dec 2013
-	min: 0,
+	max: "2013-12-1", //1 Dec 2013
+	min: "1970-1-1",
 
 	generateDateQuery: function(lower_date_str, upper_date_str){
 		if(lower_date_str && upper_date_str) {		// Check if not empty strings
 			var lower_date_month = parseInt(lower_date_str.split("-")[1]) - 1;
-			var upper_date_data = parseInt(upper_date_str.split("-")[1]) - 1;
-			if(lower_date_month && upper_date_month) {		// Check if both are not NaN
+			var upper_date_month = parseInt(upper_date_str.split("-")[1]) - 1;
+			if(lower_date_month + 1 && upper_date_month + 1) {		// Check if both are not NaN
 				return indexToBucketValues(lower_date_month, upper_date_month, 6, "date")
 			}
 		}
@@ -40,7 +40,7 @@ var date_bucket = {
 	},
 
     dateToIndex: function(date_str) {
-        return new Date(date_str).getMonth();
+        return new Date(date_str).getMonth()%6;
     }
 };
 
@@ -59,8 +59,16 @@ function indexToBucketValues(lower_index, upper_index, number_of_buckets, field)
 }
      
 function indexToBucketValue(index, field){
-    var sha = CryptoJS.SHA3(index + field + symmetric_key)[0];
-    return index;
+    var sha = CryptoJS.SHA3(index + field + symmetric_key);
+    return sha.toString()[0];
+}
+
+function amountToBucket(amount){
+    return indexToBucketValue(amount_bucket.amountToIndex(amount),"amount");
+}
+
+function dateToBucket(date){
+    return indexToBucketValue(date_bucket.dateToIndex(date),"date");
 }
 
 var search_form = {

@@ -3,7 +3,7 @@ var symmetric_key = "";
 var amount_bucket = {
 	max: 0,
 	min: 0,
-	map: [0,1000,2000,3000,4000,5000,6000,7000,8000,9000],
+	map: [0,1710,2436,2927,3316,3651,3951,4229,4493,4748,5000,5251,5506,5770,6048,6348,6683,7072,7563,8289],
 
 	generateAmountQuery: function(lower_amount, upper_amount){
 		var lower_index = amount_bucket.amountToIndex(lower_amount);
@@ -55,7 +55,8 @@ function indexToBucketValues(lower_index, upper_index, number_of_buckets, field)
 }
      
 function indexToBucketValue(index, field){
-    return CryptoJS.SHA3(index + field + symmetric_key)
+    var sha = CryptoJS.SHA3(index + field + symmetric_key)[0];
+    return index;
 }
 
 var search_form = {
@@ -148,7 +149,7 @@ var search_form = {
 	},
 
 	is_amount_ready: function() {
-		return this.amount.single_amount || (this.amount.from_amount && this.amount.to_amount);
+		return this.amount.single_amount > 0 || (this.amount.from_amount > 0 && this.amount.to_amount > 0);
 	},
 
 	is_date_ready: function() {

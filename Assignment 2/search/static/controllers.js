@@ -101,11 +101,12 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 					else{
 						for (i = 0; i < data.length; i++){
 							var transaction = data[i];						
-							var decrypted_data =/* userCrypto.decrypt(*/transaction["data"] /*)*/;
+							var decrypted_data =/* userCrypto.decrypt(*/JSON.parse(transaction['data']) /*)*/;
 							decrypted_data.id = transaction.id;
 							decrypted_data.editMode = false;
 							decrypted_data.update = $scope.updateTransaction;
 							decrypted_data.delete = $scope.deleteTransaction;
+							decrypted_data.date = new Date(decrypted_data.date);
 							if($scope.search_form.is_valid_result(decrypted_data)){
 								$scope.transactions.push(decrypted_data);
 							}						

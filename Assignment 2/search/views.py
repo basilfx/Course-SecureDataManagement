@@ -50,8 +50,6 @@ def do_login(request):
     if user is not None:
         if user.is_active:
             login(request, user)
-            client = Client.objects.get(user=user) 
-            client_bucket = client.client_bucket
             data = {"login_successful": True};
             data = json.dumps(data, indent=4)
             return HttpResponse(data,content_type='application/json')
@@ -117,18 +115,32 @@ def deleteTransaction(request):
         return HttpResponse(data,content_type='application/json')
 
 @csrf_exempt
-def register(request):
+def client_register(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
     print request.POST
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,client_bucket=client_bucket)
+    client = Client(user=user,name=username,client_bucket=client_bucket)
     client.save()
     data = {"registered_successful": True};
     data = json.dumps(data, indent=4)
     return HttpResponse(data,content_type='application/json')
+
+@csrf_exempt
+def consultant_register(request):
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
+    public_key = request.POST.__getitem__('public_key')
+    user = User.objects.create_user(username, None, password)
+    user.save()
+    consultant = Consultant(user=user,name=username,public_key=public_key)
+    consultant.save()
+    data = {"registered_successful": True};
+    data = json.dumps(data, indent=4)
+    return HttpResponse(data,content_type='application/json')
+
 
 def search_amount_date(request):
     if request.user.is_authenticated():

@@ -42,7 +42,6 @@ def transactions(request):
         data = json.dumps(data, indent=4)
         return HttpResponse(data,content_type='application/json')
 
-@csrf_exempt
 def do_login(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
@@ -64,7 +63,6 @@ def do_login(request):
         data = json.dumps(data, indent=4)
         return HttpResponse(data,content_type='application/json')
 
-@csrf_exempt
 def createTransaction(request):
     if request.user.is_authenticated():
         user = request.user
@@ -94,7 +92,6 @@ def createTransaction(request):
         data = json.dumps(data, indent=4)
         return HttpResponse(data,content_type='application/json')
 
-@csrf_exempt
 def deleteTransaction(request):
     if request.user.is_authenticated():
         user = request.user
@@ -116,7 +113,6 @@ def deleteTransaction(request):
         data = json.dumps(data, indent=4)
         return HttpResponse(data,content_type='application/json')
 
-@csrf_exempt
 def register(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')

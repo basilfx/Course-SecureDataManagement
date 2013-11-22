@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap %}
 
 {% block content %}
 <script type="text/javascript">
@@ -16,29 +17,29 @@
 			var description  = $("#visible_form input[name=description]").val();
 			var miliseconds = new Date().valueOf();
 
-			var data  = { 
-				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}), 
+			var data  = {
+				data: encrypt({"amount":amount,"sender":sender,"receiver":receiver,"description":description, "miliseconds":miliseconds}),
 				amount_bucket: hash(amount),
 				miliseconds_bucket: hash(miliseconds),
 				client_bucket: clientMappingFunction(user_id)
 			};
-			
+
 			//encrypt
 			$("#hidden_form input[name=data]").val(JSON.stringify(data));
 			$("#hidden_form").submit();
-		});	
-		
+		});
+
 		data = decrypt(data);
 
 		var transaction = JSON.parse(data);
 		addDataToForm(transaction["sender"], transaction["receiver"], transaction["amount"], transaction["description"]);
-		
+
 	});
 </script>
 
 <h2>Edit transaction {{transaction.id}}</h2>
 <form id="visible_form" method="POST">
-{% load bootstrap %}
+
 {{form | bootstrap}}
 
 <input class="btn btn-lg btn-primary" type="submit">

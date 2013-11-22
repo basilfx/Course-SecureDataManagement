@@ -8,8 +8,12 @@ class Transaction(models.Model):
 
 class Client(models.Model):
 	name = models.CharField(max_length=100)
-	public_key = models.CharField(max_length=1024)
-	sym_key_client = models.CharField(max_length=100)
-	sym_key_cons = models.CharField(max_length=100)
+	sym_key_cons = models.CharField(max_length=1024)
 	user = models.OneToOneField('auth.User')
 	client_bucket = models.IntegerField()
+	consultant = models.ForeignKey('Consultant')
+
+class Consultant(models.Model):
+	name = models.CharField(max_length=100)
+	public_key = models.CharField(max_length=1024)
+	user = models.OneToOneField('auth.User')

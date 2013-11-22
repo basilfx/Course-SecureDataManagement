@@ -19,7 +19,7 @@ return HttpResponse(data,content_type='application/json')
 """
 
 def index(request):
-    return render(request, "index.html", locals())
+    return redirect('/static/index/')
 
 def client_index(request):
     data = []
@@ -31,38 +31,46 @@ def client_index(request):
 @require_POST
 @json_response
 def client_login(request):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    user = authenticate(username=username, password=password)
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
 
+    user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
             login(request, user)
-            client = Client.objects.get(user=user)
-            client_bucket = client.client_bucket
             return {"login_successful": True};
-        else:
-            return {"login_successful": False};
-    else:
-        return {"login_successful": False};
+
+    return {"login_successful": False};
 
 def client_logout(request):
     logout(request)
-    return redirect('search.views.index')
+    return redirect('search.views.client_login')
 
 @require_POST
 @json_response
 def client_register(request):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
     print request.POST
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,client_bucket=client_bucket)
+    client = Client(user=user,name=username,client_bucket=client_bucket)
     client.save()
 
-    return { "registered_successful": True };
+    return {"registered_successful": True};
+
+@json_response
+def consultant_register(request):
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
+    public_key = request.POST.__getitem__('public_key')
+    user = User.objects.create_user(username, None, password)
+    user.save()
+    consultant = Consultant(user=user,name=username,public_key=public_key)
+    consultant.save()
+
+    return {"registered_successful": True};
 
 @login_required
 @json_response
@@ -71,12 +79,12 @@ def transactions(request):
     client = Client.objects.get(user=user)
     transactions = Transaction.objects.filter(client_bucket=client.client_bucket)
     data = []
-
     for transaction in transactions:
         data.append(model_to_dict(transaction, fields=["id", "data"]))
 
     return data
 
+@require_POST
 @login_required
 @json_response
 def transactions_create(request):
@@ -87,6 +95,7 @@ def transactions_create(request):
     data = request.POST.__getitem__('data')
     amount_bucket = request.POST.__getitem__('amount_bucket')
     date_bucket = request.POST.__getitem__('date_bucket')
+
     if id == "-1" or id == "undefined":
         t = Transaction(data=data, amount_bucket=amount_bucket,date_bucket=date_bucket,client_bucket=client_bucket)
         t.save()
@@ -101,18 +110,18 @@ def transactions_create(request):
 
         return {"message": "Transaction updated"};
 
-@login_required
 @require_POST
+@login_required
 @json_response
 def transactions_delete(request):
     user = request.user
     client = Client.objects.get(user=user)
     client_bucket = client.client_bucket
     id = request.POST.__getitem__('id')
+
     if id != "-1" or id == "undefined":
         t = Transaction.objects.get(id=int(id),client_bucket=client_bucket)
         t.delete()
-
         return {"message": "Transaction deleted"};
     else:
         return {"message": "Transaction not deleted"};
@@ -125,7 +134,7 @@ def search_amount_date(request):
     print amounts
 
     if not amounts and not dates:
-        raise Http404
+        return Http404()
 
     user = request.user
     client = Client.objects.get(user=user)

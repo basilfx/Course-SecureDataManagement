@@ -71,6 +71,19 @@ function dateToBucket(date){
     return indexToBucketValue(date_bucket.dateToIndex(date),"date");
 }
 
+function stringToTimestamp(date_str) {
+    console.log(date_str);
+	if(date_str) {
+		var props = date_str.toString().split("-");
+		var date = new Date();
+		date.setYear(parseInt(props[0]));
+		date.setMonth(parseInt(props[1]));
+		date.setDate(parseInt(props[2]));
+        console.log(date.valueOf());
+		return date.valueOf();
+	}	
+}
+
 var search_form = {
 	amount: {
 		operations: [
@@ -82,7 +95,7 @@ var search_form = {
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount > parseInt(search_form.amount.single_amount);
-			}
+			},
 		},
 		{	
 			name: "Less than",
@@ -92,7 +105,7 @@ var search_form = {
 			},
 			is_valid_result: function(transaction){
 				return transaction.amount < search_form.amount.single_amount;
-			}
+			},
 		},
 		{
 			name: "Equal to",
@@ -121,20 +134,22 @@ var search_form = {
 			name: "After",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.generateDateQuery(search_form.date.single_date.date, date_bucket.max);
+				return date_bucket.generateDateQuery(search_form.date.single_date, date_bucket.max);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() > new Date(search_form.date.single_date.date).valueOf();
+                console.log("s" + search_form.date.single_date)
+                console.log("t" + stringToTimestamp(transaction.date))
+				return stringToTimestamp(transaction.date) > stringToTimestamp(search_form.date.single_date);
 			}
 		},
 		{	
 			name: "Before",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.generateDateQuery(date_bucket.min, search_form.date.single_date.date);
+				return date_bucket.generateDateQuery(date_bucket.min, search_form.date.single_date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() < new Date(search_form.date.single_date.date).valueOf();
+				return stringToTimestamp(transaction.date) < stringToTimestamp(search_form.date.single_date);
 
 			}
 		},
@@ -142,20 +157,21 @@ var search_form = {
 			name: "On",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.dateToIndex(search_form.date.single_date.date);
+				return date_bucket.dateToIndex(search_form.date.single_date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() == new Date(search_form.date.single_date.date).valueOf();
+				return stringToTimeStamp(transaction.date) == stringToTimestamp(search_form.date.single_date);
 			}
 		},
 		{
 			name: "Between",
 			is_between: true,
 			list_buckets: function(){
-				return date_bucket.generateDateQuery(search_form.date.from_date.date, search_form.date.to_date.date);
+				return date_bucket.generateDateQuery(search_form.date.from_date, search_form.date.to_date);
 			},
 			is_valid_result: function(transaction){
-				return transaction.date.valueOf() > new Date(search_form.date.from_date.date).valueOf() && transaction.date.valueOf() < new Date(search_form.date.to_date.date).valueOf();
+				return stringToTimestamp(transaction.date) > stringToTimestamp(search_form.date.from_date) &&
+						stringToTimestamp(transaction.date) < stringToTimestamp(search_form.date.to_date);
 			}
 		}]
 	},
@@ -185,8 +201,8 @@ var search_form = {
 	},
 
 	is_valid_result: function(transaction){
-		is_valid_amount = !search_form.amount.enabled || search_form.amount.operation.is_valid_result(transaction);
-		is_valid_date = !search_form.date.enabled || search_form.date.operation.is_valid_result(transaction);
+		is_valid_amount = !search_form.is_amount_ready() || search_form.amount.operation.is_valid_result(transaction);
+		is_valid_date = !search_form.is_date_ready() || search_form.date.operation.is_valid_result(transaction);
 		return is_valid_amount && is_valid_date;
 	}
 };

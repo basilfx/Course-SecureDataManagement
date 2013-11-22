@@ -36,7 +36,7 @@ def resolve_storage(func):
             return redirect("phr_cli.views.records_select")
 
         # Execute actual function
-        return func(request, data_file, *args, **kwargs)
+        return func(request, storage, *args, **kwargs)
 
     return _inner
 
@@ -191,7 +191,7 @@ def records_select(request):
     form = SelectDataFileForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        request.session["data_file"] = form.cleaned_data["storage"]
+        request.session["data_file"] = form.cleaned_data["data_file"]
         messages.info(request, "Welcome back!")
 
         return redirect("phr_cli.views.index")

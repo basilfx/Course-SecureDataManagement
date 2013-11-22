@@ -21,8 +21,8 @@ class ProtocolTest(TestCase):
             "DOCTOR",
             "INSURANCE",
             "EMPLOYER",
-            "HOSPITAL",
-            "HEALTHCLUB"
+            ("HOSPITAL", ["A", "B", "C"]),
+            ("HEALTHCLUB", ["A", "B", "C"])
         ]
         self.mappings = {
             "PERSONAL": ["DOCTOR", "INSURANCE", "EMPLOYER"],
@@ -30,7 +30,7 @@ class ProtocolTest(TestCase):
             "TRAINING": ["HEALTHCLUB"],
 
             # For testing only
-            "TEST1":   [["DOCTOR", "INSURANCE"], "EMPLOYER", "HOSPITAL", "HEALTHCLUB"]
+            "TEST1":   [["DOCTOR", "INSURANCE"], "EMPLOYER", ("HOSPITAL", "A"), "HEALTHCLUB"]
         }
 
         self.protocol = protocol.Protocol(self.categories, self.parties, self.mappings)

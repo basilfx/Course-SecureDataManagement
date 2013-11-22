@@ -39,7 +39,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 		$scope.updateTransaction = function(t){
 			$http({
 			    method: 'POST',
-			    url: '/createtransaction/',
+			    url: '/transactions/create/',
 			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -55,7 +55,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			}
 			$http({
 			    method: 'POST',
-			    url: '/deletetransaction/',
+			    url: '/transactions/delete/',
 			    data: "id=" + t.id,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).error(function(data, status, headers, config) {

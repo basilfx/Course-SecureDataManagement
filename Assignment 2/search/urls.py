@@ -4,16 +4,16 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^logout/$', 'search.views.client_logout'),
-
     url(r'^$', 'search.views.index'),
 
-    url(r'^transactions/$', 'search.views.transactions'),
-    url(r'^login/$', 'search.views.do_login'),
-    url(r'^register/$', 'search.views.register'),
-    url(r'^createtransaction/$', 'search.views.createTransaction'),
-    url(r'^deletetransaction/$', 'search.views.deleteTransaction'),
-    url(r'^search/$', 'search.views.search_amount_date'),
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^logout/$', 'search.views.client_logout'),
+    url(r'^login/$', 'search.views.client_login'),
+    url(r'^register/$', 'search.views.client_register'),
 
+    url(r'^transactions/$', 'search.views.transactions'),
+    url(r'^transactions/create/$', 'search.views.transactions_create'),
+    url(r'^transactions/delete/$', 'search.views.transactions_delete'),
+
+    url(r'^search/$', 'search.views.search_amount_date'),
 )

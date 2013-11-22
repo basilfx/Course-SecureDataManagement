@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.forms.models import model_to_dict
 from django.contrib.auth import authenticate, login, forms, logout
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 from search.models import *
 from search.forms import *
@@ -125,7 +125,7 @@ def search_amount_date(request):
     print amounts
 
     if not amounts and not dates:
-        return
+        raise Http404
 
     user = request.user
     client = Client.objects.get(user=user)

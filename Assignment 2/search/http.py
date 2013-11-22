@@ -15,4 +15,4 @@ class HttpJSONResponse(HttpResponse):
     """
 
     def __init__(self, content=None, content_type="application/json"):
-        super(HttpJSONResponse, self).__init__(content=json.dumps(content), content_type=mimetype)
+        super(HttpJSONResponse, self).__init__(content=json.dumps(content), content_type=content_type)

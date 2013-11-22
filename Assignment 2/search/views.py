@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.forms.models import model_to_dict
 from django.contrib.auth import authenticate, login, forms, logout
@@ -7,7 +8,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, Http404
 
 from search.models import *
-from search.forms import *
 from search.decorators import json_response
 
 import json
@@ -19,7 +19,7 @@ return HttpResponse(data,content_type='application/json')
 """
 
 def index(request):
-    return redirect('/static/index/')
+    return render(request, "index.html", locals())
 
 def client_index(request):
     data = []
@@ -55,7 +55,7 @@ def client_register(request):
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,name=username,client_bucket=client_bucket)
+    client = Client(user=user,name=username,client_bucket=client_bucket, )
     client.save()
 
     return {"registered_successful": True};

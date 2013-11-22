@@ -11,7 +11,7 @@ class Client(models.Model):
 	sym_key_cons = models.CharField(max_length=1024)
 	user = models.OneToOneField('auth.User')
 	client_bucket = models.IntegerField()
-	consultant = models.ForeignKey('Consultant')
+	consultant = models.ForeignKey('Consultant', null=True)
 
 class Consultant(models.Model):
 	name = models.CharField(max_length=100)

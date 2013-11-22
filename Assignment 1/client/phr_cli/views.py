@@ -209,15 +209,15 @@ def records_create(request):
         # Create PHR
         storage = DataFile(data_file)
 
-        try:
-            actions.create(storage, form.cleaned_data["host"], form.cleaned_data["record_name"])
-        except Exception, e:
-            raise e
+        #try:
+        actions.create(storage, form.cleaned_data["host"], form.cleaned_data["record_name"])
+        #except Exception, e:
+        #    raise e
 
         storage.save()
 
         # Done
-        request.session["data_file"] = data_file
+        request.session["data_file"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_create.html", locals())

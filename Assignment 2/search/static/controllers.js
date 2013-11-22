@@ -8,8 +8,8 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 		$scope.transactions = [];
 		$scope.testdata = "";
 		$scope.errordata = "";
-		
-		$http({method: 'GET', url: '/search/transactions/'
+
+		$http({method: 'GET', url: '/transactions/'
 		}).success(function(data, status, headers, config) {
 			if(data["login_successful"]==false){
 				$location.path("/login");
@@ -28,7 +28,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 		});
 
 		$scope.createTransaction = function() {
-			var now = new Date(); 
+			var now = new Date();
 			$scope.transactions.push({
 				id: -1, sender: "", receiver: "", amount: 0,
 				description: "", date: now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay()
@@ -39,7 +39,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 		$scope.updateTransaction = function(t){
 			$http({
 			    method: 'POST',
-			    url: '/search/createtransaction/',
+			    url: '/createtransaction/',
 			    data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -55,7 +55,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 			}
 			$http({
 			    method: 'POST',
-			    url: '/search/deletetransaction/',
+			    url: '/deletetransaction/',
 			    data: "id=" + t.id,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).error(function(data, status, headers, config) {
@@ -93,14 +93,14 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 			if($scope.search_form.is_ready_for_search()) {
 				$scope.search_url = $scope.search_form.generate_url();
 				$scope.transactions = [];
-				$http({method: 'GET', url: '/search/search/' + $scope.search_url
+				$http({method: 'GET', url: '/search/' + $scope.search_url
 				}).success(function(data, status, headers, config) {
 					if(data["login_successful"]==false){
 						$location.path("/login");
 					}
 					else{
 						for (i = 0; i < data.length; i++){
-							var transaction = data[i];						
+							var transaction = data[i];
 							var decrypted_data =/* userCrypto.decrypt(*/JSON.parse(transaction['data']) /*)*/;
 							decrypted_data.id = transaction.id;
 							decrypted_data.editMode = false;
@@ -108,7 +108,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
 							decrypted_data.delete = $scope.deleteTransaction;
 							if($scope.search_form.is_valid_result(decrypted_data)){
 								$scope.transactions.push(decrypted_data);
-							}						
+							}
 						}
 					}
 				}).error(function(data, status, headers, config) {
@@ -131,7 +131,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			$scope.errordata = "";
 			$http({
 			    method: 'POST',
-			    url: '/search/login/',
+			    url: '/login/',
 			    data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -139,7 +139,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 					$location.path("/");
 				}
 			}).error(function(data, status, headers, config) {
-				
+
 			});
 		}
 	}
@@ -155,7 +155,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 			$scope.errordata = "";
 			$http({
 			    method: 'POST',
-			    url: '/search/register/',
+			    url: '/register/',
 			    data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -163,7 +163,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 					$location.path("/login");
 				}
 			}).error(function(data, status, headers, config) {
-				
+
 			});
 		}
 	}
@@ -172,8 +172,8 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
 paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
-		
-		$http({method: 'GET', url: '/search/logout/'
+
+		$http({method: 'GET', url: '/logout/'
 		}).success(function(data, status, headers, config) {
 			$location.path("/login");
 		}).error(function(data, status, headers, config) {

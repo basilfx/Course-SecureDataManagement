@@ -1,5 +1,5 @@
 """
-Django settings for sdm project.
+Django settings for search project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -26,7 +26,6 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -51,9 +50,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'sdm.urls'
+ROOT_URLCONF = 'search.urls'
 
-WSGI_APPLICATION = 'sdm.wsgi.application'
+WSGI_APPLICATION = 'search.wsgi.application'
 
 
 # Database

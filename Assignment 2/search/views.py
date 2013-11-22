@@ -13,7 +13,7 @@ from django.http import HttpResponse
 # Create your views here.
 
 def index(request):
-    return redirect('/static/index/')
+    return render(request, "index.html", locals())
 
 def client_index(request):
     data = []
@@ -24,7 +24,7 @@ def client_index(request):
 
 def client_logout(request):
     logout(request)
-    return redirect('search.views.client_login')
+    return redirect('search.views.index')
 
 def transactions(request):
     if request.user.is_authenticated():

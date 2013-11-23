@@ -51,11 +51,13 @@ def client_logout(request):
 def client_register(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
+    consultant = request.POST.__getitem__('consultant')
+    symkey = request.POST.__getitem__('symkey')
     print request.POST
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,name=username,client_bucket=client_bucket, )
+    client = Client(user=user,name=username,client_bucket=client_bucket,consultant_id=int(consultant), sym_key_cons=symkey)
     client.save()
 
     return {"registered_successful": True};
@@ -81,6 +83,27 @@ def transactions(request):
     data = []
     for transaction in transactions:
         data.append(model_to_dict(transaction, fields=["id", "data"]))
+
+    return data
+
+@json_response
+def consultants(request):
+    consultants = Consultant.objects.all()
+    data = []
+    for consultant in consultants:
+        data.append(model_to_dict(consultant, fields=["id", "name", "public_key"]))
+
+    return data
+
+@login_required
+@json_response
+def client_list(request):
+    user = request.user
+    consultant = Consultant.objects.get(user=user)
+    clients = Client.objects.filter(consultant_id=consultant.id)
+    data = []
+    for client in clients:
+        data.append(model_to_dict(transaction, fields=["id", "name"]))
 
     return data
 

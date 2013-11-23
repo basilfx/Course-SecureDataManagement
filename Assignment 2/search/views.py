@@ -35,16 +35,18 @@ def client_login(request):
     password = request.POST.__getitem__('password')
 
     user = authenticate(username=username, password=password)
+    client = Client.objects.get(user=user)
     if user is not None:
         if user.is_active:
             login(request, user)
-            return {"login_successful": True};
+            return {"login_successful": True, "client_id": client.id};
 
     return {"login_successful": False};
 
+@json_response
 def client_logout(request):
     logout(request)
-    return redirect('search.views.client_login')
+    return {"logout_successful": True}
 
 @require_POST
 @json_response

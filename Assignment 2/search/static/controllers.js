@@ -105,8 +105,9 @@ paySafeControllers.controller('TransactionShowCtrl', ['$scope', '$routeParams',
     }
 ]);
 
-paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
-    function($scope,$http) {
+paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$rootScope',
+    function($scope,$http,$rootScope) {
+        console.log("trans: " +$rootScope.current_client_id);
         $scope.search_form = search_form;
         $scope.search_form.amount.operation = $scope.search_form.amount.operations[0];
         $scope.search_form.date.operation = $scope.search_form.date.operations[0];
@@ -147,8 +148,8 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http',
     }
 ]);
 
-paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
-    function($scope,$http,$location){
+paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location', '$rootScope',
+    function($scope,$http,$location,$rootScope){
         $scope.user = { username: "", password: ""};
         $scope.successdata = "";
         $scope.errordata = "";
@@ -161,7 +162,8 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
                 data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
-                if(data["login_successful"]==true){
+                if(data["login_successful"] == true){
+                    $rootScope.current_client_id = data["client_id"];
                     $location.path("/");
                 }
             }).error(function(data, status, headers, config) {

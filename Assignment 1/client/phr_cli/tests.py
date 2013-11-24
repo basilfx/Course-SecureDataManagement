@@ -52,7 +52,7 @@ class ProtocolParameterTest(TestCase):
             "THREE": [Party("HOSPITAL", "A"), "DOCTOR"],
             "FOUR": [["HOSPITAL", "EMPLOYER"], ["DOCTOR", "INSURANCE"]]
         }
-        self.maxDiff = None
+
         instance = protocol.Protocol(categories, parties, mappings)
 
         # Categories do not change
@@ -170,7 +170,8 @@ class ProtocolTest(TestCase):
         plain_insurance = self.protocol.decrypt(cipher, self.secret_keys["INSURANCE"])
         plain_employer = self.protocol.decrypt(cipher, self.secret_keys["EMPLOYER"])
 
-        # Hospital has no shared attribute
+        # Hospital-A have no shared attribute for cipher. Note that Hospital B
+        # and C are not in the mapping for TEST1
         with self.assertRaises(protocol.DecryptError) as context:
             self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL-A"])
 
@@ -180,7 +181,28 @@ class ProtocolTest(TestCase):
         self.assertEqual(self.message, plain_employer)
 
     def test_encrypt_decrypt_sub_party(self):
-        pass
+        cipher_one = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["HOSPITAL"])
+        cipher_two = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", [("HOSPITAL", "A"), ("HOSPITAL", "B")])
+
+        plain_hospital_a = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-A"])
+        plain_hospital_b = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-B"])
+        plain_hospital_c = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-C"])
+
+        # Every other hospital can read it
+        self.assertEqual(self.message, plain_hospital_a)
+        self.assertEqual(self.message, plain_hospital_b)
+        self.assertEqual(self.message, plain_hospital_c)
+
+        plain_hospital_a = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-A"])
+        plain_hospital_b = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-B"])
+
+        # Only hospital A and B can read it
+        self.assertEqual(self.message, plain_hospital_a)
+        self.assertEqual(self.message, plain_hospital_b)
+
+        # Hospital C doesn't have attribute A or B
+        with self.assertRaises(protocol.DecryptError) as context:
+            plain_hospital_c = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-C"])
 
     def test_encrypt_decrypt_fail(self):
         cipher = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["DOCTOR", "INSURANCE"])

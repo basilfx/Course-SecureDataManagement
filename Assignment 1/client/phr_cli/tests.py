@@ -44,7 +44,52 @@ class ProtocolParameterTest(TestCase):
         })
 
     def test_advanced(self):
-        pass
+        categories = ["ONE", "TWO", "THREE", "FOUR"]
+        parties = [Party("HOSPITAL", "A", "B"), Party("EMPLOYER", "C", "D"), "DOCTOR", "INSURANCE"]
+        mappings = {
+            "ONE": ["DOCTOR"],
+            "TWO": ["HOSPITAL", "EMPLOYER"],
+            "THREE": [Party("HOSPITAL", "A"), "DOCTOR"],
+            "FOUR": [["HOSPITAL", "EMPLOYER"], ["DOCTOR", "INSURANCE"]]
+        }
+        self.maxDiff = None
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "HOSPITAL": ["A", "B"],
+            "EMPLOYER": ["C", "D"],
+            "DOCTOR": [],
+            "INSURANCE": []
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes.
+        self.assertEqual(instance.mappings, {
+            "ONE": {
+                "DOCTOR": ["DOCTOR"]
+            },
+            "TWO": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "EMPLOYER-C": ["EMPLOYER", "C"],
+                "EMPLOYER-D": ["EMPLOYER", "D"]
+            },
+            "THREE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "DOCTOR": ["DOCTOR"]
+            },
+            "FOUR": {
+                "HOSPITAL-A": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "HOSPITAL-B": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "EMPLOYER-C": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "EMPLOYER-D": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "DOCTOR": ["INSURANCE", "DOCTOR"],
+                "INSURANCE": ["INSURANCE", "DOCTOR"]
+            }
+        })
 
     def test_invalid_parameters(self):
         categories = ["ONE"]
@@ -133,6 +178,9 @@ class ProtocolTest(TestCase):
         self.assertEqual(self.message, plain_doctor)
         self.assertEqual(self.message, plain_insurance)
         self.assertEqual(self.message, plain_employer)
+
+    def test_encrypt_decrypt_sub_party(self):
+        pass
 
     def test_encrypt_decrypt_fail(self):
         cipher = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["DOCTOR", "INSURANCE"])

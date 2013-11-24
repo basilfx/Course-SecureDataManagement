@@ -258,6 +258,25 @@ class Protocol(object):
         # Validate result
         return self.clean_keys(keys)
 
+    def unfold_party(self, party):
+        """
+        Convert string notation to tuple. For example, PARTY+A+B+C will be
+        converted to (PARTY, (A, B, C)). This is to work around the fact that
+        JSON has no native support for tuples.
+
+        @param party Party to unfold.
+        @return If party can be unfolded, then it will return a tuple. If this
+            is not possible, return party.
+        """
+
+        if isinstance(party, basestring):
+            parts = party.split("+")
+
+            if len(parts) > 1:
+                return Party(parts[0], *parts[1:])
+
+        return party
+
     def clean_keys(self, keys):
         """
         Validate length of keys. Private helper.
@@ -306,6 +325,9 @@ class Protocol(object):
             new_mappings[category] = {}
 
             for party in parties:
+                # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+                party = self.unfold_party(party)
+
                 if isinstance(party, basestring):
                     if not party in self.parties:
                         raise ParameterError("Unknown party: %s" % party)
@@ -330,6 +352,9 @@ class Protocol(object):
 
                     # Unfold each item
                     for item in party:
+                        # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+                        item = self.unfold_party(item)
+
                         if isinstance(item, tuple):
                             attributes = list(item[1])
                             all_attributes += attributes + [item[0]]
@@ -412,6 +437,9 @@ class Protocol(object):
         attributes = []
 
         for party in parties:
+            # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+            party = self.unfold_party(party)
+
             if isinstance(party, tuple):
                 party, sub_parties = party
 

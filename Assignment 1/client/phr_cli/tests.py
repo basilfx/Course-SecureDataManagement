@@ -43,6 +43,42 @@ class ProtocolParameterTest(TestCase):
             }
         })
 
+    def test_unfold_party(self):
+        categories = ["ONE", "TWO", "THREE"]
+        parties = ["HOSPITAL+A+B+C"]
+        mappings = {
+            "ONE": ["HOSPITAL+A+B+C"],
+            "TWO": ["HOSPITAL+A"],
+            "THREE": ["HOSPITAL"]
+        }
+
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "HOSPITAL": ["A", "B", "C"]
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes
+        self.assertEqual(instance.mappings, {
+            "ONE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "HOSPITAL-C": ["HOSPITAL", "C"]
+            },
+            "TWO": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+            },
+            "THREE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "HOSPITAL-C": ["HOSPITAL", "C"]
+            },
+        })
+
     def test_advanced(self):
         categories = ["ONE", "TWO", "THREE", "FOUR"]
         parties = [Party("HOSPITAL", "A", "B"), Party("EMPLOYER", "C", "D"), "DOCTOR", "INSURANCE"]

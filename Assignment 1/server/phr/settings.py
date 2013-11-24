@@ -183,8 +183,8 @@ PHR_PARTIES = [
     "DOCTOR",
     "INSURANCE",
     "EMPLOYER",
-    ("HOSPITAL", ["A", "B", "C"]),
-    ("HEALTHCLUB", ["A", "B", "C"])
+    "HOSPITAL+A+B+C",
+    "HEALTHCLUB+A+B+C"
 ]
 
 PHR_MAPPINGS = {

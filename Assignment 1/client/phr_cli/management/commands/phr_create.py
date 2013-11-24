@@ -14,17 +14,17 @@ class Command(BaseCommand):
         storage_file, host, record_name = unpack_arguments(args, [str, str, str])
 
         # Open data file
-        storage = DataFile(storage_file, load=True)
+        storage = DataFile(storage_file)
 
         try:
-            actions.connect(storage, host)
-            secret_keys = actions.create(storage, record_name)
+            secret_keys = actions.create(storage, host, record_name)
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
         except ValueError, e:
             raise CommandError(e)
 
         # Print keys
+        instance = storage.get_protocol()
         output = []
 
         for party, keys in storage.secret_keys.iteritems():

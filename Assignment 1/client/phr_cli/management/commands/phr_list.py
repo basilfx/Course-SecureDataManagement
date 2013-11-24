@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
         # Download list of record items
         try:
-            record_item_ids = actions.list_record_items()
+            record_item_ids = actions.list_record_items(storage)
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
         except ValueError:

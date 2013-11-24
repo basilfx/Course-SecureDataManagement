@@ -218,7 +218,7 @@ class ProtocolTest(TestCase):
 
     def test_encrypt_decrypt_sub_party(self):
         cipher_one = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["HOSPITAL"])
-        cipher_two = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", [("HOSPITAL", "A"), ("HOSPITAL", "B")])
+        cipher_two = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["HOSPITAL-A", "HOSPITAL-B"])
 
         plain_hospital_a = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-A"])
         plain_hospital_b = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-B"])

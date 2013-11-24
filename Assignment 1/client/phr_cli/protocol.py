@@ -302,6 +302,17 @@ class Protocol(object):
 
         return result
 
+    def parties_to_list(self, sub_parties_only):
+        """
+        List all parties and sub parties. See parties_to_dict for more
+        more information.
+
+        @param sub_parties_only Include party if party has sub parties.
+        @return List of all parties
+        """
+
+        return list(self.parties_to_dict(sub_parties_only).iterkeys())
+
     def clean_keys(self, keys):
         """
         Validate length of keys. Private helper.
@@ -434,7 +445,16 @@ class Protocol(object):
         """
 
         # Validate each party
+        all_parties = self.parties_to_dict(sub_parties_only=True)
+
         def loop(items):
+            # Unfold items such as PARTY-A to (PARTY, A)
+            if isinstance(items, basestring):
+                try:
+                    items = all_parties[items]
+                except LookupError:
+                    pass
+
             if isinstance(items, basestring):
                 if not items in self.attributes:
                     raise ParameterError("Unknown party or sub party: %s" % items)

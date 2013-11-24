@@ -88,23 +88,11 @@ class CategoryPartiesForm(forms.Form):
     def __init__(self, storage, sub_parties_only, *args, **kwargs):
         super(CategoryPartiesForm, self).__init__(*args, **kwargs)
 
-        self.categories = list(getattr(storage, "public_keys", {}).iterkeys())
-        self.parties = storage.get_protocol().parties_to_dict(sub_parties_only)
+        categories = list(getattr(storage, "public_keys", {}).iterkeys())
+        parties = storage.get_protocol().parties_to_list(sub_parties_only)
 
-        self.fields["category"].choices = zip(*([self.categories] * 2))
-        self.fields["parties"].choices = zip(*([list(self.parties.iterkeys())] * 2))
-
-    def clean_parties(self):
-        result = []
-
-        for party in self.cleaned_data["parties"]:
-            try:
-                party, attributes = self.parties[party]
-                result.append(attributes)
-            except LookupError:
-                pass
-
-        return result
+        self.fields["category"].choices = zip(*([categories] * 2))
+        self.fields["parties"].choices = zip(*([parties] * 2))
 
 class EncryptForm(CategoryPartiesForm):
     title = forms.CharField(max_length=128)

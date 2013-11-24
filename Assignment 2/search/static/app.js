@@ -24,6 +24,10 @@ paySafeApp.config(['$routeProvider',
 				templateUrl: staticUrl + '/partials/client_register.html',
 				controller: 'ClientRegisterCtrl'
 			}).
+			when('/clients',{
+				templateUrl: staticUrl + '/partials/client_list.html',
+				controller: 'ClientListCtrl'
+			}).
 			when('/logout',{
 				templateUrl: staticUrl + '/partials/client_login.html',
 				controller: 'ClientLogoutCtrl'

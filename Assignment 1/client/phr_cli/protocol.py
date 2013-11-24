@@ -9,10 +9,21 @@ from Crypto import Random
 from phr_cli.utils import pad_message, unpad_message
 
 import jsonrpclib
+import itertools
 import base64
 import struct
 import zlib
 import io
+
+def Party(name, *sub_parties):
+    """
+    Small helper to model a party.
+
+    @param name Name of the party
+    @param sub_parties Optional sub parties
+    @return Tuple object
+    """
+    return (name, sub_parties)
 
 class Protocol(object):
     """
@@ -37,8 +48,8 @@ class Protocol(object):
         self.scheme = abenc_waters09.CPabe09(self.group)
 
         # Protocol parameters
-        self.parties = parties
         self.categories = categories
+        self.parties, self.attributes = self.clean_parties_unfold(parties)
         self.mappings = self.clean_mappings(mappings)
 
     def setup(self):
@@ -89,19 +100,19 @@ class Protocol(object):
                 mk = master_keys[category]
                 pk = public_keys[category]
             except LookupError:
-                raise KeyRingError("No public key and master key available for category %s" % category)
+                raise KeyRingError("No public key and master key available for category: %s" % category)
 
             # Generate secret keys
-            for party in parties:
+            for party, attributes in parties.iteritems():
                 # Generate keys for a party.
-                sk = self.scheme.keygen(pk, mk, party)
+                sk = self.scheme.keygen(pk, mk, attributes)
+
+                # Ensure key exist
+                if not party in result:
+                    result[party] = {}
 
                 # Add key to each party for category
-                for item in party:
-                    if not item in result:
-                        result[item] = {}
-
-                    result[item][category] = sk
+                result[party][category] = sk
 
         # Done
         return result
@@ -222,7 +233,8 @@ class Protocol(object):
         safe for transport.
 
         @param keys Keyring (or similar)
-        @return Base64 string
+        @return Base64 string representing the keyring (or similar)
+
         @throws KeyRingError if no keys are serialized
         """
 
@@ -238,6 +250,7 @@ class Protocol(object):
 
         @return data Base64 string
         @returns Keyring (or similar)
+
         @throws KeyRingError if no keys are serialized
         """
         keys = bytesToObject(data, self.group)
@@ -286,25 +299,72 @@ class Protocol(object):
             party value does not exists
         """
 
-        for category, parties in mappings.iteritems():
-            self.clean_category(category)
+        new_mappings = {}
 
-            new_parties = []
+        for category, parties in mappings.iteritems():
+            category = self.clean_category(category)
+            new_mappings[category] = {}
 
             for party in parties:
-                if not isinstance(party, list):
-                    party = [party]
+                if isinstance(party, basestring):
+                    if not party in self.parties:
+                        raise ParameterError("Unknown party: %s" % party)
 
-                for item in party:
-                    if not item in self.parties:
-                        raise ParameterError("Unknown party: %s" % items)
+                    sub_parties = self.parties[party]
 
-                new_parties.append(party)
+                    if len(sub_parties) > 1:
+                        for sub_party in sub_parties:
+                            new_party = "%s-%s" % (party, sub_party)
+                            new_mappings[category][new_party] = [party, sub_party]
+                    else:
+                        new_mappings[category][party] = [party]
+                elif isinstance(party, tuple):
+                    party, sub_parties = party
 
-            mappings[category] = new_parties
+                    for sub_party in sub_parties:
+                        new_party = "%s-%s" % (party, sub_party)
+                        new_mappings[category][new_party] = [party, sub_party]
+                elif isinstance(party, list):
+                    new_parties = []
+                    all_attributes = []
 
-        # Return concatination of parties
-        return mappings
+                    # Unfold each item
+                    for item in party:
+                        if isinstance(item, tuple):
+                            attributes = list(item[1])
+                            all_attributes += attributes + [item[0]]
+
+                            for attribute in attributes:
+                                new_parties += ["%s-%s" % (item[0], attribute)]
+                        if isinstance(item, basestring):
+                            if not item in self.parties:
+                                raise ParameterError("Unknown party: %s" % party)
+
+                            attributes = self.parties[item]
+                            all_attributes += attributes + [item]
+
+                            if len(attributes) > 1:
+                                for attribute in attributes:
+                                    new_parties += ["%s-%s" % (item, attribute)]
+                            else:
+                                new_parties += [item]
+
+                    # Remove duplicates, the easy way
+                    all_attributes = list(set(all_attributes))
+
+                    # Append to the list
+                    for item in new_parties:
+                        new_mappings[category][item] = all_attributes
+
+        # Verify each attribute for its existence
+        for category, parties in new_mappings.iteritems():
+            for party, attributes in parties.iteritems():
+                for attribute in attributes:
+                    if attribute not in self.attributes:
+                        raise ParameterError("Unknown attribute: %s" % attribute)
+
+        # Return new mappings
+        return new_mappings
 
     def clean_parties(self, parties):
         """
@@ -326,8 +386,8 @@ class Protocol(object):
         # Validate each party
         def loop(items):
             if isinstance(items, basestring):
-                if not items in self.parties:
-                    raise ParameterError("Unknown party: %s" % items)
+                if not items in self.attributes:
+                    raise ParameterError("Unknown party or sub party: %s" % items)
 
                 return items
             else:
@@ -341,6 +401,34 @@ class Protocol(object):
 
         # Return concatination of parties
         return loop(parties)
+
+    def clean_parties_unfold(self, parties):
+        """
+        Validate, clean and unfold parties. Private helper.
+
+        """
+
+        result = {}
+        attributes = []
+
+        for party in parties:
+            if isinstance(party, tuple):
+                party, sub_parties = party
+
+                result[party] = []
+                attributes.append(party)
+
+                for sub_party in sub_parties:
+                    if sub_party in result:
+                        raise ParameterError("A sub party cannot have the same name as a party")
+
+                    result[party].append(sub_party)
+                    attributes.append(sub_party)
+            else:
+                result[party] = []
+                attributes.append(party)
+
+        return result, attributes
 
 class Error(Exception):
     """

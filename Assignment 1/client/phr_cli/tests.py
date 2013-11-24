@@ -2,11 +2,77 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 from phr_cli import protocol, data_file, utils
+from phr_cli.protocol import Party
 from phr_cli.utils import pad_message, unpad_message
+
+class ProtocolParameterTest(TestCase):
+    def test_party(self):
+        self.assertEqual(protocol.Party("PARTY"), ("PARTY", ()))
+        self.assertEqual(protocol.Party("PARTY", "A"), ("PARTY", ("A", )))
+        self.assertEqual(protocol.Party("PARTY", "A", "B"), ("PARTY", ("A", "B")))
+
+    def test_simple(self):
+        categories = ["ONETWO", "TWOTHREE"]
+        parties = ["FIRST", "SECOND", "THIRD"]
+        mappings = {
+            "ONETWO": ["FIRST", "SECOND"],
+            "TWOTHREE": ["SECOND", "THIRD"]
+        }
+
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "FIRST": [],
+            "SECOND": [],
+            "THIRD": []
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes
+        self.assertEqual(instance.mappings, {
+            "ONETWO": {
+                "FIRST": ["FIRST"],
+                "SECOND": ["SECOND"]
+            },
+            "TWOTHREE": {
+                "SECOND": ["SECOND"],
+                "THIRD": ["THIRD"]
+            }
+        })
+
+    def test_advanced(self):
+        pass
+
+    def test_invalid_parameters(self):
+        categories = ["ONE"]
+        parties = ["FIRST"]
+        mappings_one = {
+            "ONE": ["SECOND"],
+        }
+        mappings_two = {
+            "TWO": ["FIRST"],
+        }
+        mappings_three = {
+            "TWO": ["SECOND"],
+        }
+
+        # Party in mappings does not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_one)
+
+        # Categorie in mappings does not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_two)
+
+        # Both do not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_three)
 
 class ProtocolTest(TestCase):
     def setUp(self):
-        self.person = "John Doe"
         self.message = "Hi, this is a test message of a unspecific length"
         self.categories = [
             "PERSONAL",
@@ -15,14 +81,13 @@ class ProtocolTest(TestCase):
 
             # For testing only
             "TEST1",
-            "TEST2"
         ]
         self.parties = [
             "DOCTOR",
             "INSURANCE",
             "EMPLOYER",
-            ("HOSPITAL", ["A", "B", "C"]),
-            ("HEALTHCLUB", ["A", "B", "C"])
+            Party("HOSPITAL", "A", "B", "C"),
+            Party("HEALTHCLUB", "A", "B", "C")
         ]
         self.mappings = {
             "PERSONAL": ["DOCTOR", "INSURANCE", "EMPLOYER"],
@@ -30,7 +95,7 @@ class ProtocolTest(TestCase):
             "TRAINING": ["HEALTHCLUB"],
 
             # For testing only
-            "TEST1":   [["DOCTOR", "INSURANCE"], "EMPLOYER", ("HOSPITAL", "A"), "HEALTHCLUB"]
+            "TEST1":    [["DOCTOR", "INSURANCE"], "EMPLOYER", ("HOSPITAL", "A"), ("HEALTHCLUB", ["A", "B"])]
         }
 
         self.protocol = protocol.Protocol(self.categories, self.parties, self.mappings)
@@ -62,7 +127,7 @@ class ProtocolTest(TestCase):
 
         # Hospital has no shared attribute
         with self.assertRaises(protocol.DecryptError) as context:
-            self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL"])
+            self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL-A"])
 
         # Encrypt -> Decrypt should yield the same
         self.assertEqual(self.message, plain_doctor)

@@ -94,9 +94,3 @@ def str_upper_split(data, delimeter=","):
     """
 
     return str(data).upper().split(delimeter)
-
-def encode_with_tuples(data):
-    pass
-
-def decode_with_tuples(data):
-    pass

@@ -277,6 +277,31 @@ class Protocol(object):
 
         return party
 
+    def parties_to_dict(self, sub_parties_only=False):
+        """
+        Convert the parties dictionary to a flat dictionary with the key
+        representing the name of the (sub) party. If a specific party does not
+        have sub parties, it is always added while if a specific party does have
+        sub parties, it is only added if sub_parties_only is False.
+
+        @param sub_parties_only Include party if party has sub parties.
+        @return Dictionary object with keys representing the (sub) party name
+            and the value all the attributes.
+        """
+        result = {}
+
+        for party, sub_parties in self.parties.iteritems():
+            if len(sub_parties) > 0:
+                if not sub_parties_only:
+                    result[party] = party
+
+                for sub_party in sub_parties:
+                    result["%s-%s" % (party, sub_party)] = (party, sub_party)
+            else:
+                result[party] = party
+
+        return result
+
     def clean_keys(self, keys):
         """
         Validate length of keys. Private helper.

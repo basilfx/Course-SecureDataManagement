@@ -81,10 +81,32 @@ class CreatePHRForm(forms.Form):
         )
     )
 
-class EncryptForm(forms.Form):
+class CategoryPartiesForm(forms.Form):
     category = forms.ChoiceField()
-    parties = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,)
+    parties = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
 
+    def __init__(self, storage, sub_parties_only, *args, **kwargs):
+        super(CategoryPartiesForm, self).__init__(*args, **kwargs)
+
+        self.categories = list(getattr(storage, "public_keys", {}).iterkeys())
+        self.parties = storage.get_protocol().parties_to_dict(sub_parties_only)
+
+        self.fields["category"].choices = zip(*([self.categories] * 2))
+        self.fields["parties"].choices = zip(*([list(self.parties.iterkeys())] * 2))
+
+    def clean_parties(self):
+        result = []
+
+        for party in self.cleaned_data["parties"]:
+            try:
+                party, attributes = self.parties[party]
+                result.append(attributes)
+            except LookupError:
+                pass
+
+        return result
+
+class EncryptForm(CategoryPartiesForm):
     title = forms.CharField(max_length=128)
     attachment = forms.FileField(required=False)
     message = forms.CharField(max_length=1024*1024*10, widget=forms.Textarea())
@@ -104,13 +126,10 @@ class EncryptForm(forms.Form):
         )
     )
 
-    def __init__(self, categories, parties, *args, **kwargs):
-        super(EncryptForm, self).__init__(*args, **kwargs)
+    def __init__(self, storage, *args, **kwargs):
+        super(EncryptForm, self).__init__(storage, False, *args, **kwargs)
 
-        self.fields["category"].choices = zip(categories, categories)
-        self.fields["parties"].choices = zip(parties, parties)
-
-class GrantForm(forms.Form):
+class GrantForm(CategoryPartiesForm):
     category = forms.ChoiceField()
     parties = forms.MultipleChoiceField(widget = forms.CheckboxSelectMultiple)
     access = forms.ChoiceField(choices=(("W", "WRITE"), ("R", "READ")))
@@ -128,8 +147,5 @@ class GrantForm(forms.Form):
         )
     )
 
-    def __init__(self, categories, parties, *args, **kwargs):
-        super(GrantForm, self).__init__(*args, **kwargs)
-
-        self.fields["category"].choices = zip(categories, categories)
-        self.fields["parties"].choices = zip(parties, parties)
+    def __init__(self, storage, *args, **kwargs):
+        super(GrantForm, self).__init__(storage, True, *args, **kwargs)

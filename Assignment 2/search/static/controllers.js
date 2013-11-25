@@ -1,5 +1,7 @@
-//// FIXME !!!!
-userCrypto = new Crypto("key");
+var global = {
+	privateKey: "",
+	crypto: undefined
+};
 
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
@@ -151,14 +153,17 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
 paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
 		$scope.user = { username: "", password: ""};
+		$scope.isConsultant = false;
+
 		$scope.successdata = "";
 		$scope.errordata = "";
 		$scope.login = function(){
 			$scope.successdata = "";
 			$scope.errordata = "";
+			var url = $scope.isConsultant ? "/consultant-login/" : "/client-login/";
 			$http({
 			    method: 'POST',
-			    url: '/login/',
+			    url: url,
 			    data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -168,6 +173,12 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			}).error(function(data, status, headers, config) {
 				
 			});
+
+			if($scope.isConsultant) {
+				global.privateKey = $scope.privKey;
+			} else {
+				global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
+			}
 		}
 	}
 ]);
@@ -182,7 +193,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
         }).success(function(data, status, headers, config) {
             for (i = 0; i < data.length; i++){
                 var consultant = data[i];
-                $scope.consultant.push(consultant);
+                $scope.consultants.push(consultant);
             }
             $scope.consultant = $scope.consultants[0];    
         }).error(function(data, status, headers, config) {
@@ -191,13 +202,16 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
 
         $scope.register = function(){
-            $scope.successdata = "";
-            $scope.errordata = "";
-            $scope.encrypted_key = "";
+        	// First hash and then encrypt the symmetric key
+            var hashed_key = CryptoJS.SHA3($scope.user.password);
+            var rsa = new RSAKey();
+            rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
+            var encrypted_key = rsa.encrypt(hashed_key);
+
             $http({
                 method: 'POST',
-                url: '/register/',
-                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&consultant=" + $scope.consultant.id + "&symkey=" + $scope.encrypted_key,
+                url: '/client-register/',
+                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){
@@ -232,10 +246,25 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 		$scope.generateKey = function() {
 			var rsa = new RSAKey();
 			rsa.generate(2048, '10001');
-			$scope.pubKey = rsa.e.toString(16);
+			$scope.pubExp = rsa.e.toString(16);
+			$scope.pubMod = rsa.n.toString(16);
 			$scope.privKey = rsa.d.toString(16);
-			console.log($scope.privKey);
 			$scope.isGenerated = true;
+		}
+
+		$scope.register = function() {
+			$http({
+                method: 'POST',
+                url: '/consultant-register/',
+                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            }).success(function(data, status, headers, config) {
+                if(data["registered_successful"]==true){
+                    $location.path("/login");
+                }
+            }).error(function(data, status, headers, config) {
+
+            });
 		}
 		
 	}

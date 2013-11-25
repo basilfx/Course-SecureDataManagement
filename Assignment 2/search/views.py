@@ -43,6 +43,22 @@ def client_login(request):
 
     return {"login_successful": False};
 
+@require_POST
+@json_response
+def consultant_login(request):
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
+
+    user = authenticate(username=username, password=password)
+    consultant = Consultant.objects.get(user=user)
+
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            return {"login_successful": True }
+
+    return {"login_successful" : False}
+
 @json_response
 def client_logout(request):
     logout(request)
@@ -51,15 +67,15 @@ def client_logout(request):
 @require_POST
 @json_response
 def client_register(request):
-    username = request.POST.__getitem__('username')
-    password = request.POST.__getitem__('password')
-    consultant = request.POST.__getitem__('consultant')
-    symkey = request.POST.__getitem__('symkey')
-    print request.POST
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    consultant_id = request.POST.get('consultant_id')
+    consultant = Consultant.objects.get(id = consultant_id)
+    key = request.POST.get('key')
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,name=username,client_bucket=client_bucket,consultant_id=int(consultant), sym_key_cons=symkey)
+    client = Client(user=user,name=username,client_bucket=client_bucket,consultant=consultant, sym_key_cons=key)
     client.save()
 
     return {"registered_successful": True};
@@ -68,10 +84,11 @@ def client_register(request):
 def consultant_register(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
-    public_key = request.POST.__getitem__('public_key')
+    public_exp = request.POST.__getitem__('public_exp')
+    public_mod = request.POST.__getitem__('public_mod')
     user = User.objects.create_user(username, None, password)
     user.save()
-    consultant = Consultant(user=user,name=username,public_key=public_key)
+    consultant = Consultant(user=user,name=username,public_exp=public_exp,public_mod=public_mod)
     consultant.save()
 
     return {"registered_successful": True};
@@ -93,7 +110,7 @@ def consultants(request):
     consultants = Consultant.objects.all()
     data = []
     for consultant in consultants:
-        data.append(model_to_dict(consultant, fields=["id", "name", "public_key"]))
+        data.append(model_to_dict(consultant, fields=["id", "name", "public_exp", "public_mod"]))
 
     return data
 

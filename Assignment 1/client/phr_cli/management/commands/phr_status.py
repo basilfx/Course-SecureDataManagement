@@ -1,18 +1,16 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from phr_cli import actions
-from phr_cli.utils import unpack_arguments
-from phr_cli.data_file import DataFile
+from phr_cli.utils import unpack_arguments, load_data_file
 
 class Command(BaseCommand):
     help = "Retrieve a remote public key for a given category"
-    args = "<storage_file>"
+    args = "<data_file>"
 
     def handle(self, *args, **options):
-        storage_file, = unpack_arguments(args, [str])
+        storage, = unpack_arguments(args, [load_data_file()])
 
         # Open data file
-        storage = DataFile(storage_file, load=True)
         instance = storage.get_protocol()
 
         def join(attribute):

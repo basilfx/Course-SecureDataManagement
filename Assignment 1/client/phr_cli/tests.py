@@ -5,6 +5,10 @@ from phr_cli import protocol, data_file, utils
 from phr_cli.protocol import Party
 from phr_cli.utils import pad_message, unpad_message
 
+import tempfile
+import shutil
+import os
+
 class ProtocolParameterTest(TestCase):
     def test_party(self):
         self.assertEqual(protocol.Party("PARTY"), ("PARTY", ()))
@@ -332,3 +336,68 @@ class UtilsTest(TestCase):
         # Invalid formats
         with self.assertRaises(CommandError) as context:
             utils.unpack_arguments(args, formats_two)
+
+    def test_load_data_file(self):
+        # This should not raise an exception
+        try:
+            utils.load_data_file(False)("a.json")
+        except:
+            self.fail("Unexpected exception")
+
+        # This should fail since the file does not exist
+        with self.assertRaises(CommandError) as context:
+            utils.load_data_file(True)("b.json")
+
+class DataFileTest(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.temp_dir)
+        except:
+            pass
+
+    def test_valid_properties(self):
+        # Create
+        storage = data_file.DataFile(os.path.join(self.temp_dir, "c.json"))
+
+        storage.host = "http://exampe.org"
+        storage.categories = ["ONE", "TWO", "THREE"]
+        storage.record_id = 1
+
+        storage.save()
+
+        # Load
+        storage2 = data_file.DataFile(os.path.join(self.temp_dir, "c.json"), load=True)
+
+        # Should be the same
+        self.assertEqual(storage.host, storage2.host)
+        self.assertEqual(storage.categories, storage2.categories)
+        self.assertEqual(storage.record_id, storage2.record_id)
+
+    def test_invalid_properties(self):
+        # Create
+        storage = data_file.DataFile(os.path.join(self.temp_dir, "d.json"))
+
+        storage.host = ["NOT", "A", "URL"]
+
+        # This should fail since host is of wrong type
+        with self.assertRaises(TypeError) as context:
+            storage.save()
+
+    def test_ignored_properties(self):
+        # Create
+        storage = data_file.DataFile(os.path.join(self.temp_dir, "e.json"))
+
+        storage.host = "http://exampe.org"
+        storage.no_host = "http://not_existing.org"
+
+        storage.save()
+
+        # Load
+        storage2 = data_file.DataFile(os.path.join(self.temp_dir, "e.json"), load=True)
+
+        # Should be the same
+        self.assertTrue(hasattr(storage2, "host"))
+        self.assertFalse(hasattr(storage2, "no_host"))

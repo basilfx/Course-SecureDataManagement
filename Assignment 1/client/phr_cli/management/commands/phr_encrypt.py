@@ -1,21 +1,17 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from phr_cli import actions
-from phr_cli.utils import unpack_arguments, str_upper, str_upper_split
-from phr_cli.data_file import DataFile
+from phr_cli.utils import unpack_arguments, str_upper, str_upper_split, load_data_file
 
 import jsonrpclib
 
 class Command(BaseCommand):
     help = "Encrypt a message of a given category for certain parties"
-    args = "<storage_file> <category> <party1,..,partyN> <message>"
+    args = "<data_file> <category> <party1,..,partyN> <message>"
 
     def handle(self, *args, **options):
-        storage_file, category, parties, message = unpack_arguments(
-            args, [str, str_upper, str_upper_split, str])
-
-        # Open data file
-        storage = DataFile(storage_file, load=True)
+        storage, category, parties, message = unpack_arguments(args,
+            [load_data_file(), str_upper, str_upper_split, str])
 
         # Encrypt data
         try:

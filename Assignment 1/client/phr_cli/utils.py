@@ -2,6 +2,7 @@ from django.core.management.base import CommandError
 
 from Crypto import Random
 
+import functools
 import struct
 import io
 
@@ -94,3 +95,33 @@ def str_upper_split(data, delimeter=","):
     """
 
     return str(data).upper().split(delimeter)
+
+def load_data_file(load=True):
+    """
+    Create a method to create or load a data file from disk. To be used with
+    unpack_arguments.
+
+    @param load Boolean to indicate that file should be loaded.
+    @return Created function.
+    """
+
+    def _inner(data):
+        """
+        Load or create the data file. Any IOError will be caught and wrapped in
+        a CommandError.
+
+        @param data Path to file.
+        @return DataFile instance
+
+        @throws CommandError in case file could not be found.
+        """
+
+        try:
+            from phr_cli.data_file import DataFile
+
+            return DataFile(data, load=load)
+        except IOError:
+            raise CommandError("Could not open or create data file '%s'", data)
+
+    # Return new method
+    return _inner

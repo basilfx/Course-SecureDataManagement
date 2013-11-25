@@ -1,18 +1,14 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from phr_cli import actions
-from phr_cli.utils import unpack_arguments, str_upper
-from phr_cli.data_file import DataFile
+from phr_cli.utils import unpack_arguments, str_upper, load_data_file
 
 class Command(BaseCommand):
     help = "Decrypt a given record item"
-    args = "<storage_file> <record_item_id"
+    args = "<data_file> <record_item_id"
 
     def handle(self, *args, **options):
-        storage_file, record_item_id = unpack_arguments(args, [str, int])
-
-        # Open data file
-        storage = DataFile(storage_file, load=True)
+        storage, record_item_id = unpack_arguments(args, [load_data_file(), int])
 
         # Decrypt it
         data = actions.decrypt(storage, record_item_id)

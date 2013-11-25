@@ -1,21 +1,18 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from phr_cli import actions
-from phr_cli.utils import unpack_arguments
-from phr_cli.data_file import DataFile
+from phr_cli.utils import unpack_arguments, load_data_file
 
 import jsonrpclib
 
 class Command(BaseCommand):
     help = "Initialize a new PHR record with a given host and record name"
-    args = "<storage_file> <host> <record_name>"
+    args = "<data_file> <host> <record_name>"
 
     def handle(self, *args, **options):
-        storage_file, host, record_name = unpack_arguments(args, [str, str, str])
+        storage, host, record_name = unpack_arguments(args, [load_data_file(False), str, str])
 
-        # Open data file
-        storage = DataFile(storage_file)
-
+        # Connect to remote server
         try:
             secret_keys = actions.create(storage, host, record_name)
         except jsonrpclib.ProtocolError:

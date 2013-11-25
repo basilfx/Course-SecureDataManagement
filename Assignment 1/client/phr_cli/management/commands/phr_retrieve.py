@@ -1,32 +1,28 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from phr_cli import actions
-from phr_cli.utils import unpack_arguments, str_upper
-from phr_cli.data_file import DataFile
+from phr_cli.utils import unpack_arguments, str_upper, load_data_file
 
 import jsonrpclib
 
 class Command(BaseCommand):
     help = "Retrieve a remote public key for a given category"
-    args = "<storage_file> <category>"
+    args = "<data_file> <category>"
 
     def handle(self, *args, **options):
-        storage_file, category = unpack_arguments(args, [str, str_upper])
-
-        # Open data file
-        storage = DataFile(storage_file, load=True)
+        storage, category = unpack_arguments(args, [load_data_file(), str_upper])
 
         # Retrieve key
         try:
-            count = actions.retrieve(storage, { "category": category })
+            keys = actions.retrieve(storage, category=category)
         except jsonrpclib.ProtocolError:
             raise CommandError("Unable to communicate to remote server")
         except ValueError:
             raise CommandError(e)
 
         # Done
-        if count:
+        if len(keys) > 0:
             storage.save()
-            self.stdout.write("%d new keys imported.\n" % count)
+            self.stdout.write("Key(s) imported for %s.\n" % ", ".join(keys))
         else:
-            self.stout.write("No new keys imported.\n")
+            self.stdout.write("No new key(s) imported.\n")

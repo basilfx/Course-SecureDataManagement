@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block content %}
-    {% if categories|length > 0 %}
+    {% if form.fields.category.choices|length > 0 %}
         <p>
             {% trans 'Select below which parties you want to grant access to.' %}
         </p>

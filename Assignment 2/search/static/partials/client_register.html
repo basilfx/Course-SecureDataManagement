@@ -9,6 +9,9 @@
     <label class="sr-only" for="passwordfield">Password</label>
     <input type="password" ng-model="user.password" class="form-control" id="passwordfield" placeholder="Password">
   </div>
+  <div class="form-group">
+  <select class="form-control" ng-model="consultant" ng-options="consultant.name for consultant in consultants" name="consultant"></select>
+  </div>
   <button ng-click="register()" class="btn btn-primary btn-lg">Register</button>
 </form>
 

@@ -2,11 +2,158 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 from phr_cli import protocol, data_file, utils
+from phr_cli.protocol import Party
 from phr_cli.utils import pad_message, unpad_message
+
+class ProtocolParameterTest(TestCase):
+    def test_party(self):
+        self.assertEqual(protocol.Party("PARTY"), ("PARTY", ()))
+        self.assertEqual(protocol.Party("PARTY", "A"), ("PARTY", ("A", )))
+        self.assertEqual(protocol.Party("PARTY", "A", "B"), ("PARTY", ("A", "B")))
+
+    def test_simple(self):
+        categories = ["ONETWO", "TWOTHREE"]
+        parties = ["FIRST", "SECOND", "THIRD"]
+        mappings = {
+            "ONETWO": ["FIRST", "SECOND"],
+            "TWOTHREE": ["SECOND", "THIRD"]
+        }
+
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "FIRST": [],
+            "SECOND": [],
+            "THIRD": []
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes
+        self.assertEqual(instance.mappings, {
+            "ONETWO": {
+                "FIRST": ["FIRST"],
+                "SECOND": ["SECOND"]
+            },
+            "TWOTHREE": {
+                "SECOND": ["SECOND"],
+                "THIRD": ["THIRD"]
+            }
+        })
+
+    def test_unfold_party(self):
+        categories = ["ONE", "TWO", "THREE"]
+        parties = ["HOSPITAL+A+B+C"]
+        mappings = {
+            "ONE": ["HOSPITAL+A+B+C"],
+            "TWO": ["HOSPITAL+A"],
+            "THREE": ["HOSPITAL"]
+        }
+
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "HOSPITAL": ["A", "B", "C"]
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes
+        self.assertEqual(instance.mappings, {
+            "ONE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "HOSPITAL-C": ["HOSPITAL", "C"]
+            },
+            "TWO": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+            },
+            "THREE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "HOSPITAL-C": ["HOSPITAL", "C"]
+            },
+        })
+
+    def test_advanced(self):
+        categories = ["ONE", "TWO", "THREE", "FOUR"]
+        parties = [Party("HOSPITAL", "A", "B"), Party("EMPLOYER", "C", "D"), "DOCTOR", "INSURANCE"]
+        mappings = {
+            "ONE": ["DOCTOR"],
+            "TWO": ["HOSPITAL", "EMPLOYER"],
+            "THREE": [Party("HOSPITAL", "A"), "DOCTOR"],
+            "FOUR": [["HOSPITAL", "EMPLOYER"], ["DOCTOR", "INSURANCE"]]
+        }
+
+        instance = protocol.Protocol(categories, parties, mappings)
+
+        # Categories do not change
+        self.assertEqual(instance.categories, categories)
+
+        # Parties are unfolded
+        self.assertEqual(instance.parties, {
+            "HOSPITAL": ["A", "B"],
+            "EMPLOYER": ["C", "D"],
+            "DOCTOR": [],
+            "INSURANCE": []
+        })
+
+        # Mappings are unfolded per category and party with lists of attributes.
+        self.assertEqual(instance.mappings, {
+            "ONE": {
+                "DOCTOR": ["DOCTOR"]
+            },
+            "TWO": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "HOSPITAL-B": ["HOSPITAL", "B"],
+                "EMPLOYER-C": ["EMPLOYER", "C"],
+                "EMPLOYER-D": ["EMPLOYER", "D"]
+            },
+            "THREE": {
+                "HOSPITAL-A": ["HOSPITAL", "A"],
+                "DOCTOR": ["DOCTOR"]
+            },
+            "FOUR": {
+                "HOSPITAL-A": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "HOSPITAL-B": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "EMPLOYER-C": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "EMPLOYER-D": ["A", "C", "B", "D", "HOSPITAL", "EMPLOYER"],
+                "DOCTOR": ["INSURANCE", "DOCTOR"],
+                "INSURANCE": ["INSURANCE", "DOCTOR"]
+            }
+        })
+
+    def test_invalid_parameters(self):
+        categories = ["ONE"]
+        parties = ["FIRST"]
+        mappings_one = {
+            "ONE": ["SECOND"],
+        }
+        mappings_two = {
+            "TWO": ["FIRST"],
+        }
+        mappings_three = {
+            "TWO": ["SECOND"],
+        }
+
+        # Party in mappings does not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_one)
+
+        # Categorie in mappings does not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_two)
+
+        # Both do not exist
+        with self.assertRaises(protocol.ParameterError) as context:
+            protocol.Protocol(categories, parties, mappings_three)
 
 class ProtocolTest(TestCase):
     def setUp(self):
-        self.person = "John Doe"
         self.message = "Hi, this is a test message of a unspecific length"
         self.categories = [
             "PERSONAL",
@@ -15,14 +162,13 @@ class ProtocolTest(TestCase):
 
             # For testing only
             "TEST1",
-            "TEST2"
         ]
         self.parties = [
             "DOCTOR",
             "INSURANCE",
             "EMPLOYER",
-            "HOSPITAL",
-            "HEALTHCLUB"
+            Party("HOSPITAL", "A", "B", "C"),
+            Party("HEALTHCLUB", "A", "B", "C")
         ]
         self.mappings = {
             "PERSONAL": ["DOCTOR", "INSURANCE", "EMPLOYER"],
@@ -30,7 +176,7 @@ class ProtocolTest(TestCase):
             "TRAINING": ["HEALTHCLUB"],
 
             # For testing only
-            "TEST1":   [["DOCTOR", "INSURANCE"], "EMPLOYER", "HOSPITAL", "HEALTHCLUB"]
+            "TEST1":    [["DOCTOR", "INSURANCE"], "EMPLOYER", ("HOSPITAL", "A"), ("HEALTHCLUB", ["A", "B"])]
         }
 
         self.protocol = protocol.Protocol(self.categories, self.parties, self.mappings)
@@ -60,14 +206,39 @@ class ProtocolTest(TestCase):
         plain_insurance = self.protocol.decrypt(cipher, self.secret_keys["INSURANCE"])
         plain_employer = self.protocol.decrypt(cipher, self.secret_keys["EMPLOYER"])
 
-        # Hospital has no shared attribute
+        # Hospital-A have no shared attribute for cipher. Note that Hospital B
+        # and C are not in the mapping for TEST1
         with self.assertRaises(protocol.DecryptError) as context:
-            self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL"])
+            self.protocol.decrypt(cipher, self.secret_keys["HOSPITAL-A"])
 
         # Encrypt -> Decrypt should yield the same
         self.assertEqual(self.message, plain_doctor)
         self.assertEqual(self.message, plain_insurance)
         self.assertEqual(self.message, plain_employer)
+
+    def test_encrypt_decrypt_sub_party(self):
+        cipher_one = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["HOSPITAL"])
+        cipher_two = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["HOSPITAL-A", "HOSPITAL-B"])
+
+        plain_hospital_a = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-A"])
+        plain_hospital_b = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-B"])
+        plain_hospital_c = self.protocol.decrypt(cipher_one, self.secret_keys["HOSPITAL-C"])
+
+        # Every other hospital can read it
+        self.assertEqual(self.message, plain_hospital_a)
+        self.assertEqual(self.message, plain_hospital_b)
+        self.assertEqual(self.message, plain_hospital_c)
+
+        plain_hospital_a = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-A"])
+        plain_hospital_b = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-B"])
+
+        # Only hospital A and B can read it
+        self.assertEqual(self.message, plain_hospital_a)
+        self.assertEqual(self.message, plain_hospital_b)
+
+        # Hospital C doesn't have attribute A or B
+        with self.assertRaises(protocol.DecryptError) as context:
+            plain_hospital_c = self.protocol.decrypt(cipher_two, self.secret_keys["HOSPITAL-C"])
 
     def test_encrypt_decrypt_fail(self):
         cipher = self.protocol.encrypt(self.message, self.public_keys, "HEALTH", ["DOCTOR", "INSURANCE"])

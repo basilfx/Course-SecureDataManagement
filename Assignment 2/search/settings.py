@@ -1,5 +1,5 @@
 """
-Django settings for sdm project.
+Django settings for search project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -26,7 +26,6 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -45,15 +44,14 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'sdm.urls'
+ROOT_URLCONF = 'search.urls'
 
-WSGI_APPLICATION = 'sdm.wsgi.application'
+WSGI_APPLICATION = 'search.wsgi.application'
 
 
 # Database
@@ -68,6 +66,8 @@ DATABASES = {
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
+
+LOGIN_URL = "/login"
 
 LANGUAGE_CODE = 'en-us'
 

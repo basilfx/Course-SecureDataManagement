@@ -3,9 +3,9 @@ from phr_cli.protocol import DecryptError, KeyRingError
 import jsonrpclib
 
 """
-Helper methods to bridge the gap between the PHR server and our local storage
-file. Methods in this module are shared between the command line commands and
-the web interface.
+Helper methods to bridge the gap between the PHR server and our local storage.
+Methods in this module are shared between the command line commands and the web
+interface.
 """
 
 def create(storage, host, record_name):
@@ -190,7 +190,7 @@ def grant(storage, category, parties):
     key_id = api.add_key(storage.record_id, category, data)
 
     # Verify
-    if not key_id:
+    if key_id == False:
         raise ValueError("Unable to upload key")
 
     # Done
@@ -213,7 +213,7 @@ def retrieve(storage, **lookups):
     api = jsonrpclib.Server(storage.host)
     key_ids = api.find_keys(storage.record_id, lookups)
 
-    if not key_ids:
+    if key_ids == False:
         raise ValueError("Could not search for remote keys")
 
     # Process each ID

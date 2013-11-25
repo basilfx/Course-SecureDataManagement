@@ -9,10 +9,21 @@ from Crypto import Random
 from phr_cli.utils import pad_message, unpad_message
 
 import jsonrpclib
+import itertools
 import base64
 import struct
 import zlib
 import io
+
+def Party(name, *sub_parties):
+    """
+    Small helper to model a party.
+
+    @param name Name of the party
+    @param sub_parties Optional sub parties
+    @return Tuple object
+    """
+    return (name, sub_parties)
 
 class Protocol(object):
     """
@@ -37,8 +48,8 @@ class Protocol(object):
         self.scheme = abenc_waters09.CPabe09(self.group)
 
         # Protocol parameters
-        self.parties = parties
         self.categories = categories
+        self.parties, self.attributes = self.clean_parties_unfold(parties)
         self.mappings = self.clean_mappings(mappings)
 
     def setup(self):
@@ -89,19 +100,19 @@ class Protocol(object):
                 mk = master_keys[category]
                 pk = public_keys[category]
             except LookupError:
-                raise KeyRingError("No public key and master key available for category %s" % category)
+                raise KeyRingError("No public key and master key available for category: %s" % category)
 
             # Generate secret keys
-            for party in parties:
+            for party, attributes in parties.iteritems():
                 # Generate keys for a party.
-                sk = self.scheme.keygen(pk, mk, party)
+                sk = self.scheme.keygen(pk, mk, attributes)
+
+                # Ensure key exist
+                if not party in result:
+                    result[party] = {}
 
                 # Add key to each party for category
-                for item in party:
-                    if not item in result:
-                        result[item] = {}
-
-                    result[item][category] = sk
+                result[party][category] = sk
 
         # Done
         return result
@@ -222,7 +233,8 @@ class Protocol(object):
         safe for transport.
 
         @param keys Keyring (or similar)
-        @return Base64 string
+        @return Base64 string representing the keyring (or similar)
+
         @throws KeyRingError if no keys are serialized
         """
 
@@ -238,12 +250,68 @@ class Protocol(object):
 
         @return data Base64 string
         @returns Keyring (or similar)
+
         @throws KeyRingError if no keys are serialized
         """
         keys = bytesToObject(data, self.group)
 
         # Validate result
         return self.clean_keys(keys)
+
+    def unfold_party(self, party):
+        """
+        Convert string notation to tuple. For example, PARTY+A+B+C will be
+        converted to (PARTY, (A, B, C)). This is to work around the fact that
+        JSON has no native support for tuples.
+
+        @param party Party to unfold.
+        @return If party can be unfolded, then it will return a tuple. If this
+            is not possible, return party.
+        """
+
+        if isinstance(party, basestring):
+            parts = party.split("+")
+
+            if len(parts) > 1:
+                return Party(parts[0], *parts[1:])
+
+        return party
+
+    def parties_to_dict(self, sub_parties_only=False):
+        """
+        Convert the parties dictionary to a flat dictionary with the key
+        representing the name of the (sub) party. If a specific party does not
+        have sub parties, it is always added while if a specific party does have
+        sub parties, it is only added if sub_parties_only is False.
+
+        @param sub_parties_only Include party if party has sub parties.
+        @return Dictionary object with keys representing the (sub) party name
+            and the value all the attributes.
+        """
+        result = {}
+
+        for party, sub_parties in self.parties.iteritems():
+            if len(sub_parties) > 0:
+                if not sub_parties_only:
+                    result[party] = party
+
+                for sub_party in sub_parties:
+                    result["%s-%s" % (party, sub_party)] = (party, sub_party)
+            else:
+                result[party] = party
+
+        return result
+
+    def parties_to_list(self, sub_parties_only):
+        """
+        List all parties and sub parties. See parties_to_dict for more
+        more information.
+
+        @param sub_parties_only Include party if party has sub parties.
+        @return List of all parties
+        """
+
+        return list(self.parties_to_dict(sub_parties_only).iterkeys())
 
     def clean_keys(self, keys):
         """
@@ -286,25 +354,78 @@ class Protocol(object):
             party value does not exists
         """
 
-        for category, parties in mappings.iteritems():
-            self.clean_category(category)
+        new_mappings = {}
 
-            new_parties = []
+        for category, parties in mappings.iteritems():
+            category = self.clean_category(category)
+            new_mappings[category] = {}
 
             for party in parties:
-                if not isinstance(party, list):
-                    party = [party]
+                # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+                party = self.unfold_party(party)
 
-                for item in party:
-                    if not item in self.parties:
-                        raise ParameterError("Unknown party: %s" % items)
+                if isinstance(party, basestring):
+                    if not party in self.parties:
+                        raise ParameterError("Unknown party: %s" % party)
 
-                new_parties.append(party)
+                    sub_parties = self.parties[party]
 
-            mappings[category] = new_parties
+                    if len(sub_parties) > 1:
+                        for sub_party in sub_parties:
+                            new_party = "%s-%s" % (party, sub_party)
+                            new_mappings[category][new_party] = [party, sub_party]
+                    else:
+                        new_mappings[category][party] = [party]
+                elif isinstance(party, tuple):
+                    party, sub_parties = party
 
-        # Return concatination of parties
-        return mappings
+                    for sub_party in sub_parties:
+                        new_party = "%s-%s" % (party, sub_party)
+                        new_mappings[category][new_party] = [party, sub_party]
+                elif isinstance(party, list):
+                    new_parties = []
+                    all_attributes = []
+
+                    # Unfold each item
+                    for item in party:
+                        # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+                        item = self.unfold_party(item)
+
+                        if isinstance(item, tuple):
+                            attributes = list(item[1])
+                            all_attributes += attributes + [item[0]]
+
+                            for attribute in attributes:
+                                new_parties += ["%s-%s" % (item[0], attribute)]
+                        if isinstance(item, basestring):
+                            if not item in self.parties:
+                                raise ParameterError("Unknown party: %s" % party)
+
+                            attributes = self.parties[item]
+                            all_attributes += attributes + [item]
+
+                            if len(attributes) > 1:
+                                for attribute in attributes:
+                                    new_parties += ["%s-%s" % (item, attribute)]
+                            else:
+                                new_parties += [item]
+
+                    # Remove duplicates, the easy way
+                    all_attributes = list(set(all_attributes))
+
+                    # Append to the list
+                    for item in new_parties:
+                        new_mappings[category][item] = all_attributes
+
+        # Verify each attribute for its existence
+        for category, parties in new_mappings.iteritems():
+            for party, attributes in parties.iteritems():
+                for attribute in attributes:
+                    if attribute not in self.attributes:
+                        raise ParameterError("Unknown attribute: %s" % attribute)
+
+        # Return new mappings
+        return new_mappings
 
     def clean_parties(self, parties):
         """
@@ -324,10 +445,19 @@ class Protocol(object):
         """
 
         # Validate each party
+        all_parties = self.parties_to_dict(sub_parties_only=True)
+
         def loop(items):
+            # Unfold items such as PARTY-A to (PARTY, A)
             if isinstance(items, basestring):
-                if not items in self.parties:
-                    raise ParameterError("Unknown party: %s" % items)
+                try:
+                    items = all_parties[items]
+                except LookupError:
+                    pass
+
+            if isinstance(items, basestring):
+                if not items in self.attributes:
+                    raise ParameterError("Unknown party or sub party: %s" % items)
 
                 return items
             else:
@@ -341,6 +471,37 @@ class Protocol(object):
 
         # Return concatination of parties
         return loop(parties)
+
+    def clean_parties_unfold(self, parties):
+        """
+        Validate, clean and unfold parties. Private helper.
+
+        """
+
+        result = {}
+        attributes = []
+
+        for party in parties:
+            # Convert PARTY+A+B into (PARTY, (A, B)) if possible
+            party = self.unfold_party(party)
+
+            if isinstance(party, tuple):
+                party, sub_parties = party
+
+                result[party] = []
+                attributes.append(party)
+
+                for sub_party in sub_parties:
+                    if sub_party in result:
+                        raise ParameterError("A sub party cannot have the same name as a party")
+
+                    result[party].append(sub_party)
+                    attributes.append(sub_party)
+            else:
+                result[party] = []
+                attributes.append(party)
+
+        return result, attributes
 
 class Error(Exception):
     """

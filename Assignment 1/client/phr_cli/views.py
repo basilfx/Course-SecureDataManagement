@@ -36,7 +36,7 @@ def resolve_storage(func):
             return redirect("phr_cli.views.records_select")
 
         # Execute actual function
-        return func(request, data_file, *args, **kwargs)
+        return func(request, storage, *args, **kwargs)
 
     return _inner
 
@@ -64,12 +64,9 @@ def records_share(request, storage):
 
 @resolve_storage
 def record_items_create(request, storage):
-    categories = list(getattr(storage, "public_keys", {}).iterkeys())
-
     # Create form with available categories and parties
     form = EncryptForm(
-        categories,
-        storage.parties,
+        storage,
         data=request.POST or None,
         files=request.FILES or None
     )
@@ -144,14 +141,8 @@ def record_items_show(request, storage, record_item_id):
 
 @resolve_storage
 def keys_grant(request, storage):
-    categories = list(getattr(storage, "public_keys", {}).iterkeys())
-
     # Create form with available categories and parties
-    form = GrantForm(
-        categories,
-        storage.parties,
-        data=request.POST or None
-    )
+    form = GrantForm(storage, data=request.POST or None)
 
     # Handle request
     if request.method == "POST" and form.is_valid():
@@ -160,10 +151,7 @@ def keys_grant(request, storage):
 
             if key_id:
                 messages.info(request,
-                    "Granted %s access to %s" % (
-                        ", ".join(form.cleaned_data["parties"]),
-                        form.cleaned_data["category"]
-                    )
+                    "Granted access to %s" % form.cleaned_data["category"]
                 )
             else:
                 message.error(request, "Unable to grant access")
@@ -191,7 +179,7 @@ def records_select(request):
     form = SelectDataFileForm(data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        request.session["data_file"] = form.cleaned_data["storage"]
+        request.session["data_file"] = form.cleaned_data["data_file"]
         messages.info(request, "Welcome back!")
 
         return redirect("phr_cli.views.index")
@@ -209,15 +197,15 @@ def records_create(request):
         # Create PHR
         storage = DataFile(data_file)
 
-        try:
-            actions.create(storage, form.cleaned_data["host"], form.cleaned_data["record_name"])
-        except Exception, e:
-            raise e
+        #try:
+        actions.create(storage, form.cleaned_data["host"], form.cleaned_data["record_name"])
+        #except Exception, e:
+        #    raise e
 
         storage.save()
 
         # Done
-        request.session["data_file"] = data_file
+        request.session["data_file"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_create.html", locals())
@@ -241,7 +229,7 @@ def records_connect(request):
         storage.save()
 
         # Done
-        request.session["storage"] = new_data_file
+        request.session["data_file"] = new_data_file
         return redirect("phr_cli.views.index")
 
     return render(request, "records_connect.html", locals())

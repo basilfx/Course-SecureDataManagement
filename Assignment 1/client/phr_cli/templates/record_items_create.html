@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block content %}
-    {% if categories|length > 0 %}
+    {% if form.fields.category.choices|length > 0 %}
         <p>
             {% trans 'Enter the form below and submit to encrypt and upload the data to the PHR record.' %}
         </p>

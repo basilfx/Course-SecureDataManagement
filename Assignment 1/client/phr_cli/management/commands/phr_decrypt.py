@@ -19,6 +19,6 @@ class Command(BaseCommand):
 
         # Output
         if data:
-            self.stdout.write("Record content:\n\n%s" % data)
+            self.stdout.write("Record item content:\n\n%s" % data)
         else:
-            self.stdout.write("Cannot decrypt record\n")
+            self.stdout.write("Cannot decrypt record item\n")

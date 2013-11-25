@@ -1,7 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
-
-# Create your models here.
 
 class Transaction(models.Model):
 	data = models.CharField(max_length=1024)
@@ -11,8 +8,12 @@ class Transaction(models.Model):
 
 class Client(models.Model):
 	name = models.CharField(max_length=100)
-	public_key = models.CharField(max_length=1024)
-	sym_key_client = models.CharField(max_length=100)
-	sym_key_cons = models.CharField(max_length=100)
-	user = models.OneToOneField(User)
+	sym_key_cons = models.CharField(max_length=1024)
+	user = models.OneToOneField('auth.User')
 	client_bucket = models.IntegerField()
+	consultant = models.ForeignKey('Consultant', null=True)
+
+class Consultant(models.Model):
+	name = models.CharField(max_length=100)
+	public_key = models.CharField(max_length=1024)
+	user = models.OneToOneField('auth.User')

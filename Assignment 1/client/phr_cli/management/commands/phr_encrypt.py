@@ -4,7 +4,7 @@ from phr_cli import actions
 from phr_cli.utils import unpack_arguments, str_upper, str_upper_split
 from phr_cli.data_file import DataFile
 
-import jsonrpclibs
+import jsonrpclib
 
 class Command(BaseCommand):
     help = "Encrypt a message of a given category for certain parties"

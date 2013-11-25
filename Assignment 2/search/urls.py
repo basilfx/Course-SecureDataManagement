@@ -8,8 +8,9 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^logout/$', 'search.views.client_logout'),
-    url(r'^login/$', 'search.views.client_login'),
-    url(r'^register/$', 'search.views.client_register'),
+    url(r'^client-login/$', 'search.views.client_login'),
+    url(r'^consultant-login/$', 'search.views.consultant_login'),
+    url(r'^client-register/$', 'search.views.client_register'),
     url(r'^consultant-register/$', 'search.views.consultant_register'),
 
 

@@ -43,6 +43,22 @@ def client_login(request):
 
     return {"login_successful": False};
 
+@require_POST
+@json_response
+def consultant_login(request):
+    username = request.POST.__getitem__('username')
+    password = request.POST.__getitem__('password')
+
+    user = authenticate(username=username, password=password)
+    consultant = Consultant.objects.get(user=user)
+
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            return {"login_successful": True }
+
+    return {"login_successful" : False}
+
 @json_response
 def client_logout(request):
     logout(request)

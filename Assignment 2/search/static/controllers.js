@@ -1,6 +1,11 @@
 //// FIXME !!!!
 userCrypto = new Crypto("key");
 
+var global = {
+	privateKey: "",
+	clientId: 0
+};
+
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
 paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location',
@@ -151,14 +156,17 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
 paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
 		$scope.user = { username: "", password: ""};
+		$scope.isConsultant = false;
+
 		$scope.successdata = "";
 		$scope.errordata = "";
 		$scope.login = function(){
 			$scope.successdata = "";
 			$scope.errordata = "";
+			var url = $scope.isConsultant ? "/consultant-login/" : "/client-login/";
 			$http({
 			    method: 'POST',
-			    url: '/login/',
+			    url: url,
 			    data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
@@ -168,6 +176,10 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			}).error(function(data, status, headers, config) {
 				
 			});
+
+			if($scope.isConsultant) {
+				global.privateKey = $scope.privKey;
+			}
 		}
 	}
 ]);

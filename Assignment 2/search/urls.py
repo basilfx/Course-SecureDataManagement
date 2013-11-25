@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'search.views.client_logout'),
     url(r'^login/$', 'search.views.client_login'),
     url(r'^register/$', 'search.views.client_register'),
+    url(r'^consultant-register/$', 'search.views.consultant_register'),
 
 
     url(r'^consultants/$', 'search.views.consultants'),

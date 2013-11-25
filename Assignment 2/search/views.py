@@ -68,10 +68,11 @@ def client_register(request):
 def consultant_register(request):
     username = request.POST.__getitem__('username')
     password = request.POST.__getitem__('password')
-    public_key = request.POST.__getitem__('public_key')
+    public_exp = request.POST.__getitem__('public_exp')
+    public_mod = request.POST.__getitem__('public_mod')
     user = User.objects.create_user(username, None, password)
     user.save()
-    consultant = Consultant(user=user,name=username,public_key=public_key)
+    consultant = Consultant(user=user,name=username,public_exp=public_exp,public_mod=public_mod)
     consultant.save()
 
     return {"registered_successful": True};

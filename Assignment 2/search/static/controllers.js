@@ -232,10 +232,25 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 		$scope.generateKey = function() {
 			var rsa = new RSAKey();
 			rsa.generate(2048, '10001');
-			$scope.pubKey = rsa.e.toString(16);
+			$scope.pubExp = rsa.e.toString(16);
+			$scope.pubMod = rsa.n.toString(16);
 			$scope.privKey = rsa.d.toString(16);
-			console.log($scope.privKey);
 			$scope.isGenerated = true;
+		}
+
+		$scope.register = function() {
+			$http({
+                method: 'POST',
+                url: '/consultant-register/',
+                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            }).success(function(data, status, headers, config) {
+                if(data["registered_successful"]==true){
+                    $location.path("/login");
+                }
+            }).error(function(data, status, headers, config) {
+
+            });
 		}
 		
 	}

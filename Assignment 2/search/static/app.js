@@ -24,6 +24,10 @@ paySafeApp.config(['$routeProvider',
 				templateUrl: 'partials/client_register.html',
 				controller: 'ClientRegisterCtrl'
 			}).
+			when('/register-consultant', {
+				templateUrl: 'partials/consultant_register.html',
+				controller: 'ConsultantRegisterCtrl'
+			}).
 			when('/logout',{
 				templateUrl: 'partials/client_login.html',
 				controller: 'ClientLogoutCtrl'

@@ -143,8 +143,8 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			});
 		}
 	}
-
 ]);
+
 paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
 		$scope.user = { username: "", password: ""};
@@ -182,3 +182,20 @@ paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location
 		}
 
 ]);
+
+paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$location',
+	function($scope, $http, $location) {
+		$scope.isGenerated = false;
+		$scope.user = { username: "", password: "" }
+
+		$scope.generateKey = function() {
+			var rsa = new RSAKey();
+			rsa.generate(2048, '10001');
+			$scope.pubKey = rsa.e.toString(16);
+			$scope.privKey = rsa.d.toString(16);
+			console.log($scope.privKey);
+			$scope.isGenerated = true;
+		}
+		
+	}
+])

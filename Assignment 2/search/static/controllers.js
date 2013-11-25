@@ -148,31 +148,30 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
     }
 ]);
 
-paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location', '$rootScope',
-    function($scope,$http,$location,$rootScope){
-        $scope.user = { username: "", password: ""};
-        $scope.successdata = "";
-        $scope.errordata = "";
-        $scope.login = function(){
-            $scope.successdata = "";
-            $scope.errordata = "";
-            $http({
-                method: 'POST',
-                url: '/login/',
-                data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-            }).success(function(data, status, headers, config) {
-                if(data["login_successful"] == true){
-                    $rootScope.current_client_id = data["client_id"];
-                    $location.path("/");
-                }
-            }).error(function(data, status, headers, config) {
-
-            });
-        }
-    }
-
+paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
+	function($scope,$http,$location){
+		$scope.user = { username: "", password: ""};
+		$scope.successdata = "";
+		$scope.errordata = "";
+		$scope.login = function(){
+			$scope.successdata = "";
+			$scope.errordata = "";
+			$http({
+			    method: 'POST',
+			    url: '/login/',
+			    data: "username=" +$scope.user.username + "&password=" +$scope.user.password,
+			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(function(data, status, headers, config) {
+				if(data["login_successful"]==true){
+					$location.path("/");
+				}
+			}).error(function(data, status, headers, config) {
+				
+			});
+		}
+	}
 ]);
+
 paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$location',
     function($scope,$http,$location){
         $scope.user = { username: "", password: ""};
@@ -224,3 +223,20 @@ paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location
         }
 
 ]);
+
+paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$location',
+	function($scope, $http, $location) {
+		$scope.isGenerated = false;
+		$scope.user = { username: "", password: "" }
+
+		$scope.generateKey = function() {
+			var rsa = new RSAKey();
+			rsa.generate(2048, '10001');
+			$scope.pubKey = rsa.e.toString(16);
+			$scope.privKey = rsa.d.toString(16);
+			console.log($scope.privKey);
+			$scope.isGenerated = true;
+		}
+		
+	}
+])

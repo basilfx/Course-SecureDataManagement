@@ -24,6 +24,10 @@ paySafeApp.config(['$routeProvider',
 				templateUrl: staticUrl + '/partials/client_register.html',
 				controller: 'ClientRegisterCtrl'
 			}).
+			when('/register-consultant', {
+				templateUrl: staticUrl + 'partials/consultant_register.html',
+				controller: 'ConsultantRegisterCtrl'
+			}).
 			when('/clients',{
 				templateUrl: staticUrl + '/partials/client_list.html',
 				controller: 'ClientListCtrl'

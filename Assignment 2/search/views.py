@@ -67,15 +67,15 @@ def client_logout(request):
 @require_POST
 @json_response
 def client_register(request):
-    username = request.POST.__getitem__('username')
-    password = request.POST.__getitem__('password')
-    consultant = request.POST.__getitem__('consultant')
-    symkey = request.POST.__getitem__('symkey')
-    print request.POST
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    consultant_id = request.POST.get('consultant_id')
+    consultant = Consultant.objects.get(id = consultant_id)
+    key = request.POST.get('key')
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
-    client = Client(user=user,name=username,client_bucket=client_bucket,consultant_id=int(consultant), sym_key_cons=symkey)
+    client = Client(user=user,name=username,client_bucket=client_bucket,consultant=consultant, sym_key_cons=key)
     client.save()
 
     return {"registered_successful": True};
@@ -110,7 +110,7 @@ def consultants(request):
     consultants = Consultant.objects.all()
     data = []
     for consultant in consultants:
-        data.append(model_to_dict(consultant, fields=["id", "name", "public_key"]))
+        data.append(model_to_dict(consultant, fields=["id", "name", "public_exp", "public_mod"]))
 
     return data
 

@@ -3,6 +3,7 @@ userCrypto = new Crypto("key");
 
 var global = {
 	privateKey: "",
+
 	clientId: 0
 };
 
@@ -194,7 +195,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
         }).success(function(data, status, headers, config) {
             for (i = 0; i < data.length; i++){
                 var consultant = data[i];
-                $scope.consultant.push(consultant);
+                $scope.consultants.push(consultant);
             }
             $scope.consultant = $scope.consultants[0];    
         }).error(function(data, status, headers, config) {
@@ -203,13 +204,16 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
 
         $scope.register = function(){
-            $scope.successdata = "";
-            $scope.errordata = "";
-            $scope.encrypted_key = "";
+        	// First hash and then encrypt the symmetric key
+            var hashed_key = CryptoJS.SHA3($scope.user.password);
+            var rsa = new RSAKey();
+            rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
+            var encrypted_key = rsa.encrypt(hashed_key);
+
             $http({
                 method: 'POST',
-                url: '/register/',
-                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&consultant=" + $scope.consultant.id + "&symkey=" + $scope.encrypted_key,
+                url: '/client-register/',
+                data: "username=" +$scope.user.username + "&password=" +$scope.user.password + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){

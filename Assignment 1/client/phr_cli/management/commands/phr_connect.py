@@ -10,16 +10,13 @@ class Command(BaseCommand):
     args = "<data_file> <host>"
 
     def handle(self, *args, **options):
-        storage_file, host = unpack_arguments(args, [load_data_file(False), str])
+        storage, host = unpack_arguments(args, [load_data_file(False), str])
 
         # Ask user to supply key
         key_data = raw_input("Paste the keys data, excluding the BEGIN and END block: ")
 
         if len(key_data) == 0:
             return
-
-        # Open data file
-        storage = DataFile(storage_file)
 
         # Process data
         try:

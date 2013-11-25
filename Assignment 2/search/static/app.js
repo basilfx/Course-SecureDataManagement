@@ -39,6 +39,5 @@ paySafeApp.config(['$routeProvider',
 			otherwise({
 				redirectTo: '/'
 			});
-
 	}
 ]);

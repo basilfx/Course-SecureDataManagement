@@ -1,10 +1,6 @@
-//// FIXME !!!!
-userCrypto = new Crypto("key");
-
 var global = {
 	privateKey: "",
-
-	clientId: 0
+	crypto: undefined
 };
 
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
@@ -180,6 +176,8 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 
 			if($scope.isConsultant) {
 				global.privateKey = $scope.privKey;
+			} else {
+				global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
 			}
 		}
 	}

@@ -10,6 +10,7 @@ from phr_cli.utils import pad_message, unpad_message
 
 import jsonrpclib
 import itertools
+import hashlib
 import base64
 import struct
 import zlib
@@ -163,6 +164,8 @@ class Protocol(object):
 
         # Encrypt data
         plain_padded = pad_message(plain, AES.block_size)
+        plain_padded_checksum = hashlib.sha1(plain_padded).hexdigest()
+        result.write(plain_padded_checksum)
         result.write(aes.encrypt(plain_padded))
 
         # Done
@@ -222,7 +225,12 @@ class Protocol(object):
         aes = AES.new(hashPair(aes_key_plain)[0:32], AES.MODE_CFB, aes_iv)
 
         # Decrypt data
+        plain_checksum = cipher.read(40)
         plain_padded = aes.decrypt(cipher.read())
+
+        # Verify checksum
+        if not hashlib.sha1(plain_padded).hexdigest() == plain_checksum:
+            raise DecryptError("Checksum mismatch")
 
         # Done
         return unpad_message(plain_padded)

@@ -33,10 +33,9 @@
 	First, we introduce the data model, including the categories of data and different parties. Then, we introduce the access policies. The third section will discuss the actual implementation and verifies the the requirements. The last section will discuss our implementation.
 
 \section{Data model}
-	We split the health record globally in three different segments. These are: 
 
 	\subsection{Data categories}
-		The system defines the following categories of data
+		The system defines the categories below. 
 		
 		\begin{description}
 		    \item[Patient data]
@@ -60,32 +59,42 @@
 		\end{description}
 
 \section{Access model}
-	Setup: person generates 3 sets of public and master keys.\\
-    personal data public key(pk$_{pd}$) and master key(mk$_{pd}$)\\
-    health data public key(pk$_{hd}$) and master key(mk$_{hd}$)\\
-    training data public key(pk$_{td}$) and master key(mk$_{td}$)
-    
-    Keygen:
-    For every party the person generates 3 secret keys based on their identity attribute. Thus the doctor, insurance and employer get a secret key based on their attribute for personal data (sk$_{pd}$), health data(sk$_{hd}$) and training data(sk$_{td}$). The hospital receives a secret key based on their attribute for health data (sk$_{hd}$) and the health club receives a secret key based on their attribute for training-related data (sk$_{td}$)\\
-    The person then uploads the existing data encrypted with the access policies he wishes the data to have, together with the corresponding public keys and attribute lists to the server.
-    
-    \subsection{Encrypt}
-    
-    The only parties that are allowed to encrypt data (write-access) are the person to whom the health record belongs, the hospital that the person has been treated at and the healthclub the person is currently a member of. 
-    
-    \begin{description}
-	    \item[Person] A person can change the data of every field of his health record.
-    	\item[Hospital] Reads the encrypted pk$_{hd}$ and access policy from the database, decrypts them using his sk$_{hd}$. and encrypts the message using the pk$_{hd}$ and access policy.
-	    \item[Health Club] Reads the encrypted pk$_{td}$ and access policy from the database, decrypts them using his sk$_{td}$. and encrypts the message using the pk$_{td}$ and access policy.
-    \end{description}
-    
-    \subsection{Decrypt}
-    To decrypt, the decrypting party simply uses his secret key. He either gets data that makes sense, or will decrypt the data into gibberish.
+	\subsection{Policies}
+	
+	\subsection{Phases}
+		\subsubsection{Setup}
+	
+		\subsubsection{Keygen}
+		
+		\subsubsection{Encrypt}
+		
+		\subsubsection{Decrypt}
     
 \section{Implementation}
+	This section describes the practical implementation of the assignment.
 	
-
+	\subsection{Architecture}
+		Client/Server
+	
+		Django + Charm
+		
+		AES
+		
+		All relevant parts\footnote{All code not related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
+	
 	\subsection{Database model}
+		The role of the database is minimal. This also resulted in a very small database model.
+		
+		\begin{description}
+			\item[Record table]
+			\textit{ID, Record name} 
+			\item[Record item table]
+			\textit{ID, Record ID, Category, Data} 			
+			\item[Keystore table]
+			\textit{ID, Record ID, Category, Data}
+		\end{description}
+	
+		Data is saved in Base64 encoded string, representing the cipher text.
 	
 	\subsection{Verification of requirements}
 		The assignment includes the following requirements:
@@ -97,9 +106,9 @@
 			\item{A health club can insert training-related health data to any patient record that is a member of \textit{that} club.}
 		\end{enumerate}
 		
-		To show that our system fulfills the requirements, we show a sample session via the command line interface. One can play this session back and should see similar results.
+		To show that our system fulfills the requirements, we show a few use cases operated via the command line interface. One can play all use cases and should see similar results.
 		
-		\subsubsection{Creating a PHR}
+		\subsubsection{Creating a PHR}\label{sec:usecase_1}
 			Since the patient is in control of his own PHR, he is responsible for creating one.
 		
 			\begin{lstlisting}
@@ -127,7 +136,7 @@ END SECRET READ KEYS FOR INSURANCE
 		
 			A patient can encrypt data for other parties even if the keys have not yet been distributed.
 		
-		\subsubsection{Writing data}
+		\subsubsection{Writing data}\label{sec:usecase_2}
 			The patient decides to encrypt two messages. The first message can be read by his doctor, the second one by his insurance and his employer. They have access to the personal category of data.
 		
 			\begin{lstlisting}
@@ -150,7 +159,7 @@ Record item content:
 Hi, Insurance and Employer
 			\end{lstlisting}
 		
-		\subsubsection{Granting write access}
+		\subsubsection{Granting write access}\label{sec:usecase_3}
 			By default, no other party has write access. The patient should grant write access for all parties or sub parties.
 		
 			Let's assume the patient wants to grant Hospital-A write access.
@@ -162,7 +171,7 @@ Granted key for category HEALTH with key ID 22
 			
 			The write key is encrypted for party Hospital-A. If the patient wanted, he could give all hospitals write access by specifying the Hospital party instead of Hospital-A.
 		
-		\subsubsection{Connecting to a PHR}
+		\subsubsection{Connecting to a PHR}\label{sec:usecase_4}
 			In this step, the keys have been safely distributed to each party. We let each party connect to the PHR of the client.
 		
 			\begin{lstlisting}
@@ -177,7 +186,7 @@ Paste the keys data, excluding the BEGIN and END block: (...paste key insurance.
 Connected to record ID 28
 			\end{lstlisting}
 			
-		\subsubsection{Reading data}
+		\subsubsection{Reading data}\label{sec:usecase_5}
 			In the first step, we encrypted two messages. One for only the doctor (\#55), and one for both the insurance and employer (\#56). 
 			
 			First the doctor:
@@ -221,7 +230,7 @@ Cannot decrypt record item
 Cannot decrypt record item
 			\end{lstlisting}
 		
-		\subsubsection{Retrieving write access}
+		\subsubsection{Retrieving write access}\label{sec:usecase_6}
 			In step XXX we provided Hospital-A with a write key. The party should retrieve the key from the server.
 			
 			\begin{lstlisting}
@@ -260,7 +269,7 @@ Secret keys: HOSPITAL-A -> HEALTH
 			
 			For the above case, Hospital-A has connected to the right record, is able to decrypt messages for Hospital-A in the Health category and can encrypt messages for the Health category. Note that the master keys are not available, so Hospital-A cannot generate new keys (only the patient can do this).
 		
-		\subsubsection{Writing a reply}
+		\subsubsection{Writing a reply}\label{sec:usecase_7}
 			Now Hospital-A has write access, he can write data to the Health category. To verify this, we will write a message to the Health category only for the patient and one to all hospitals.
 			
 			\begin{lstlisting}
@@ -309,24 +318,82 @@ Record item content:
 Hello patient and other hospitals!
 			\end{lstlisting}
 		
-		\subsubsection{Conclusion}
-			\todo[inline]{In een tabel zetten, zoals Ruud dat deed by HWSec}
+		\subsubsection{A second patient record}\label{sec:usecase_8}
+			A patient is in control of his own PHR and has all the keys to read and write. In this use case, we show that a other patient cannot decrypt a record item that does not belong to him. Because the API to communicate with the server requires the user to specify a record item ID and the record ID, we modified it for this test to only require the record item ID. If we did not do this, the users would not be able to use the command line to request for a record item from a different record.
+			
+			First, we create a second patient.
+			
+			\begin{lstlisting}
+>>> python manage.py phr_create patient.json http://127.0.0.1:8000 "Patient two record"
+BEGIN SECRET READ FOR KEYS DOCTOR
+(...truncated for clearance...)
+END SECRET READ KEYS FOR DOCTOR
 
-			Requirement 1: 4.2.2
-			Requirement 2: 4.2.1, 4.2.4
-			Requirement 3: 4.2.3, 4.2.6, 4.2.7
-			Requirement 4: 4.2.3, 4.2.6, 4.2.7 (generalized)
+BEGIN SECRET READ FOR KEYS HOSPITAL-A
+(...truncated for clearance...)
+END SECRET READ KEYS FOR HOSPITAL-A
+
+...
+
+BEGIN SECRET READ FOR KEYS EMPLOYER
+(...truncated for clearance...)
+END SECRET READ KEYS FOR EMPLOYER
+
+BEGIN SECRET READ FOR KEYS INSURANCE
+(...truncated for clearance...)
+END SECRET READ KEYS FOR INSURANCE
+			\end{lstlisting}
+			
+			Then, we connect the (same) doctor to that record, since patient one encrypted a message (\#55) for him.
+			
+			\begin{lstlisting}
+>>> python manage.py phr_connect doctor-patient-two.json http://127.0.0.1:8000
+Paste the keys data, excluding the BEGIN and END block: (...paste key for doctor...)
+Connected to record ID 29
+			\end{lstlisting}
+			
+			It should be sufficient to show that both the patient two and the doctor with the other data file cannot read message from patient one.
+			
+			\begin{lstlisting}
+>>> python manage.py phr_decrypt patient-two.json 55
+Cannot decrypt record item
+>>> python manage.py phr_decrypt doctor-patient-two.json 55
+Cannot decrypt record item
+			\end{lstlisting}
+		
+		\subsubsection{Conclusion}
+			We conclude this section with a table representing which requirement is fulfilled by which use case.
+
+			\begin{table}[h!]
+			    \begin{tabular}{| l | l | l | l | l |} \hline
+			    ~                            & Requirement 1 & Requirement 2 & Requirement 3 & Requirement 4 \\ \hline
+			    Use case \ref{sec:usecase_1} & ~             & X             & ~             & ~             \\ \hline
+			    Use case \ref{sec:usecase_2} & X             & ~             & ~             & ~             \\ \hline
+			    Use case \ref{sec:usecase_3} & ~             & ~             & X             & X             \\ \hline
+			    Use case \ref{sec:usecase_4} & ~             & X             & ~             & ~             \\ \hline
+			    Use case \ref{sec:usecase_5} & ~             & X             & ~             & ~             \\ \hline
+			    Use case \ref{sec:usecase_6} & ~             & ~             & X             & X             \\ \hline
+			    Use case \ref{sec:usecase_7} & ~             & ~             & X             & X             \\ \hline
+			    Use case \ref{sec:usecase_8} & X             & ~             & ~             & ~             \\ \hline
+			    \end{tabular}
+			\end{table}
 	
 \section{Discussion}
 
-	\subsection{Limitations}
-		Authentication
+	\subsection{Authentication}
+		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the once with the right keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client.
 		
-		Number of keys
+		Since this is out of the scope of this assignment, we have not implemented a counter measure.
 		
-		Key spreading -> per party, RW attributes?
+	\subsection{Number of keys}
+		There are a lot of keys to be generated during the setup and keygen phase. There are $N$ master keys and $N$ public keys for $N$ categories. Based on the mapping, each party having read access gets at least one read key. If the number of parties (and sub parties) grow, the number of read keys grows too.
 		
-		upfront writing of data
+		Only the patient has to store all the keys. All other parties should only store their read and write keys.
+	
+	\subsection{Key sharing}
+		For each category of data, there is only one master key and one write key. The write key is shared among the parties if they want write access. If a party is malicious, he could impersonate another party or spread the write key. 
+		
+		In the given assignment this is not a problem, since only write access is granted to the hospital and health club, both operating on a different category of data. It would be very easy to trace it back to a malicious party.
 
 \section{References}
 	\bibliography{references}

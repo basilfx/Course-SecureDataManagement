@@ -21,7 +21,7 @@ var amount_bucket = {
 	            break;
 	        }
 	    }
-	    return index;
+	    return index % (amount_bucket.map.length/2);
 	}	
 };
 var date_bucket = {
@@ -59,8 +59,7 @@ function indexToBucketValues(lower_index, upper_index, number_of_buckets, field)
 }
      
 function indexToBucketValue(index, field){
-    var sha = CryptoJS.SHA3(index + field + symmetric_key);
-    return sha.toString()[0];
+    return global.crypto.bucket(index+field);
 }
 
 function amountToBucket(amount){
@@ -104,17 +103,17 @@ var search_form = {
 				return amount_bucket.generateAmountQuery(amount_bucket.min, search_form.amount.single_amount);
 			},
 			is_valid_result: function(transaction){
-				return transaction.amount < search_form.amount.single_amount;
+				return transaction.amount < parseInt(search_form.amount.single_amount);
 			},
 		},
 		{
 			name: "Equal to",
 			is_between: false,
 			list_buckets: function(){
-				return amount_bucket.amountToIndex(search_form.amount.single_amount);
+				return indexToBucketValue(amount_bucket.amountToIndex(search_form.amount.single_amount), "amount");
 			},
 			is_valid_result: function(transaction){
-				return transaction.amount == search_form.amount.single_amount;
+				return (transaction.amount == parseInt(search_form.amount.single_amount));
 			}
 		},
 		{
@@ -137,8 +136,6 @@ var search_form = {
 				return date_bucket.generateDateQuery(search_form.date.single_date, date_bucket.max);
 			},
 			is_valid_result: function(transaction){
-                console.log("s" + search_form.date.single_date)
-                console.log("t" + stringToTimestamp(transaction.date))
 				return stringToTimestamp(transaction.date) > stringToTimestamp(search_form.date.single_date);
 			}
 		},
@@ -157,10 +154,10 @@ var search_form = {
 			name: "On",
 			is_between: false,
 			list_buckets: function(){
-				return date_bucket.dateToIndex(search_form.date.single_date);
+				return indexToBucketValue(date_bucket.dateToIndex(search_form.date.single_date), "date");
 			},
 			is_valid_result: function(transaction){
-				return stringToTimeStamp(transaction.date) == stringToTimestamp(search_form.date.single_date);
+				return Math.abs(stringToTimestamp(transaction.date) - stringToTimestamp(search_form.date.single_date)) < 1000;
 			}
 		},
 		{

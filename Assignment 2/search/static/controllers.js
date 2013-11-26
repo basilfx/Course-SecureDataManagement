@@ -27,8 +27,6 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             else{
                 for (i = 0; i < data.length; i++){
                     var transaction = data[i];
-                    console.log("trans");
-                    console.log(transaction["data"]);
                     var decrypted_data = global.crypto.decrypt(transaction["data"]);
                     decrypted_data.id = transaction.id;
                     decrypted_data.editMode = false;

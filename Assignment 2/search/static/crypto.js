@@ -11,4 +11,8 @@ var Crypto = function(key) {
 		console.log(jsObj);
 		return window.btoa(CryptoJS.AES.encrypt(JSON.stringify(jsObj), this.key).toString());
 	}
+
+	this.bucket = function(input) {
+		return input;//CryptoJS.SHA3(input + this.key).toString()[0];
+	}
 };

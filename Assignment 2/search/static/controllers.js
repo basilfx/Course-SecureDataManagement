@@ -1,25 +1,33 @@
 var global = {
 	privateKey: "",
-	crypto: undefined
+	crypto: undefined,
+	userId: undefined
 };
+
+function checkUser(loc) {
+	if(!global.userId || !global.crypto) loc.path("/login");
+}
 
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
 paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location',
     function($scope,$http, $location) {
+    	checkUser($location);
+
         $scope.transactions = [];
         $scope.testdata = "";
         $scope.errordata = "";
 
         $http({method: 'GET', url: '/transactions/'
         }).success(function(data, status, headers, config) {
+			checkUser($location);
             if(data["login_successful"] == false){
                 $location.path("/login");
             }
             else{
                 for (i = 0; i < data.length; i++){
                     var transaction = data[i];
-                    var decrypted_data = /*userCrypto.decrypt(*/JSON.parse(transaction["data"])/*)*/;
+                    var decrypted_data = angular.fromJson(global.crypto.decrypt(transaction["data"]));
                     decrypted_data.id = transaction.id;
                     decrypted_data.editMode = false;
                     $scope.transactions.push(decrypted_data);
@@ -42,7 +50,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             $http({
                 method: 'POST',
                 url: '/transactions/create/',
-                data: "id=" + t.id + "&data=" + JSON.stringify(t) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
+                data: "id=" + t.id + "&data=" + global.crypto.encrypt(angular.toJson(t)) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 t.editMode = false;
@@ -73,6 +81,8 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
 
 paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
     function($scope,$http, $location) {
+    	checkUser($location);
+
         $scope.clients = [];
         $scope.testdata = "";
         $scope.errordata = "";
@@ -97,19 +107,10 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
     }
 ]);
 
-paySafeControllers.controller('TransactionShowCtrl', ['$scope', '$routeParams',
-    function($scope, $routeParams) {
-        transaction_id = $routeParams.id;
-        //Query server
-        //Decrypt data
-        //$scope.transaction = decrypted data
-        $scope.transaction = { id: transaction_id, sender: "Hou", receiver: "Hallow", amount: 3, description: "Oke"};
-    }
-]);
+paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$rootScope', '$location',
+    function($scope,$http,$rootScope,$location) {
+    	checkUser($location);
 
-paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$rootScope',
-    function($scope,$http,$rootScope) {
-        console.log("trans: " +$rootScope.current_client_id);
         $scope.search_form = search_form;
         $scope.search_form.amount.operation = $scope.search_form.amount.operations[0];
         $scope.search_form.date.operation = $scope.search_form.date.operations[0];
@@ -130,7 +131,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
                     else{
                         for (i = 0; i < data.length; i++){
                             var transaction = data[i];
-                            var decrypted_data =/* userCrypto.decrypt(*/JSON.parse(transaction['data']) /*)*/;
+                            var decrypted_data = global.crypto.decrypt(transaction['data']);
                             decrypted_data.id = transaction.id;
                             decrypted_data.editMode = false;
                             decrypted_data.update = $scope.updateTransaction;
@@ -168,17 +169,18 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				if(data["login_successful"]==true){
+					if($scope.isConsultant) {
+						global.privateKey = $scope.privKey;
+					} else {
+						global.userId = 1;
+						global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
+					}
+
 					$location.path("/");
 				}
 			}).error(function(data, status, headers, config) {
 				
 			});
-
-			if($scope.isConsultant) {
-				global.privateKey = $scope.privKey;
-			} else {
-				global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
-			}
 		}
 	}
 ]);

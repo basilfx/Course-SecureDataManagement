@@ -2,20 +2,13 @@
 var Crypto = function(key) {
 	this.key = key;
 	this.cipher = CryptoJS.AES;
-	this.mode = CryptoJS.mode.CBC;
-	this.padding = CryptoJS.pad.Pkcs7;
-
+	
 	this.decrypt = function(ciphertext) {
-		return this.cipher.decrypt(ciphertext, this.key, {
-			mode: this.mode,
-			padding: this.padding
-		});
+		return CryptoJS.AES.decrypt(ciphertext, this.key).toString(CryptoJS.enc.Utf8);
 	}
 
-	this.encrypt = function(plaintext) {
-		return this.cipher.encrypt(plaintext, this.key, {
-			mode: this.mode,
-			padding: this.padding
-		});
+	this.encrypt = function(jsObj) {
+		console.log(jsObj);
+		return CryptoJS.AES.encrypt(jsObj, this.key).ciphertext.toString();
 	}
 };

@@ -9,7 +9,6 @@ var amount_bucket = {
 		var lower_index = amount_bucket.amountToIndex(lower_amount);
    		var upper_index = amount_bucket.amountToIndex(upper_amount);	   
    		var r = indexToBucketValues(lower_index, upper_index, amount_bucket.map.length/2, "amount");
-   		console.log(r);
    		return r;
 	},
 
@@ -50,11 +49,9 @@ function indexToBucketValues(lower_index, upper_index, number_of_buckets, field)
         values.push(indexToBucketValue(i%number_of_buckets,field));
     }        
     values.sort();
-    console.log(values);
     var result = values.filter(function(elem, pos) {
 		return values.indexOf(elem) == pos;
 	});
-	console.log(result);
     return result.join();
 }
      
@@ -71,14 +68,12 @@ function dateToBucket(date){
 }
 
 function stringToTimestamp(date_str) {
-    console.log(date_str);
 	if(date_str) {
 		var props = date_str.toString().split("-");
 		var date = new Date();
 		date.setYear(parseInt(props[0]));
 		date.setMonth(parseInt(props[1]));
 		date.setDate(parseInt(props[2]));
-        console.log(date.valueOf());
 		return date.valueOf();
 	}	
 }

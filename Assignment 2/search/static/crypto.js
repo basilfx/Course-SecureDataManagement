@@ -13,6 +13,6 @@ var Crypto = function(key) {
 	}
 
 	this.bucket = function(input) {
-		return input;//CryptoJS.SHA3(input + this.key).toString()[0];
+		return CryptoJS.SHA3(input + this.key).toString()[0];
 	}
 };

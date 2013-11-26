@@ -49,9 +49,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         }
 
         $scope.updateTransaction = function(t){
-            var temp = {sender:t.sender, receiver:t.receiver, amount:t.amount, date:t.date, id: t.id};
-            console.log("update");
-            console.log(global.crypto.encrypt(temp));
+            var temp = {sender:t.sender, receiver:t.receiver, amount:t.amount, date:t.date, id: t.id, description:t.description};
             $http({
                 method: 'POST',
                 url: '/transactions/create/',

@@ -1,0 +1,19 @@
+<div class="alert alert-danger" ng-show="errordata">
+	{{errordata}}
+</div>
+<h1>Clients</h1>
+
+<table class="table table-striped" style="table-layout: fixed;">
+	<thead>
+		<tr>
+			<th>Name</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="c in clients">
+			<td>
+				<div ng-click="t.view_transactions()">{{t.name}}</div>
+			</td>
+		</tr>
+	</tbody>
+</table>

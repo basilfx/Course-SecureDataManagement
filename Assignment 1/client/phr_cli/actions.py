@@ -266,6 +266,7 @@ def get_record_items(storage, record_item_ids):
 
 def list_record_items(storage, **lookups):
     """
+    List all remote records items and return their IDs.
 
     @param lookups Django ORM style lookups.
     @param storage Data file to work with.

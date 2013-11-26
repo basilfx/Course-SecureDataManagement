@@ -62,6 +62,7 @@
 	\subsection{Policies}
 	
 	\subsection{Phases}
+	\todo[inline]{ Volgensmij kan dit wel weg, zie hieronder waar het ookk uitgelegd word..}
 		\subsubsection{Setup}
 	
 		\subsubsection{Keygen}
@@ -74,16 +75,22 @@
 	This section describes the practical implementation of the assignment.
 	
 	\subsection{Architecture}
-		Client/Server
+		The implementation consist of two parts. The first part is a storage server which does nothing more than saving records and providing records. The client part is a web application for all parties, but in a real situation, we assume that each type of party would have access to a own terminal to access PHR's. In fact, if it would be possible to have the server provide a terminal if we could implement CP-ABE in pure JavaScript (so encryption can stay local).
+		
+		All software is written in Python. To create web pages, the Django Framework\footnote{\url{https://www.djangoproject.com/}} is used. The encryption is provided by the Charm Crypto\footnote{\url{http://www.charm-crypto.com/}} library.
 	
-		Django + Charm
+		When a patient wants to create a PHR, he queries the server for the public system parameters. The system parameters include the categories, the involved parties and the mappings. The mappings describe for which party the client will generate read key with what attributes. For example, a mapping from \texttt{PERSONAL => EMPLOYER, INSURANCE, HOSPITAL+A+B} will result in read keys based on the master key for the category personal data. Employer will receive the attribute EMPLOYER and the Insurance the attribute INSURANCE. Hospital-A and Hospital-B will both get their own attribute A and B, but also the shared attribute HOSPITAL. Keys should be distributed in a secure way, preferably out-of-band.
 		
-		AES
+		Encryption is done by specifying the plaintext, the category and the parties. Parties are unfolded to a policy. We use Python tuples and lists to map to and and or. For example, \texttt{[(HOSPITAL-A, HOSPITAL-B), INSURANCE]} will result in the policy \texttt{(((HOSPITAL and A) and (HOSPITAL and B)) or INSURANCE)}. This allows us to build policies much more dynamic and coupled with Django. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories not in the system. A cipher text has a little bit of meta data attached that is public. This way, a receiving party knows which category the cipher text belongs to and also which read key(s) to use.
 		
+		\todo[inline]{Granting keys}
+		
+		In short, one can see our implementation as a layer between the actual CP-ABE scheme and the user.
+				
 		All relevant parts\footnote{All code not related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
 	
 	\subsection{Database model}
-		The role of the database is minimal. This also resulted in a very small database model.
+		The role of the database is minimal. This also resulted in a very small database model. The model is flexible, so we are not limited to any number of categories or parties.
 		
 		\begin{description}
 			\item[Record table]

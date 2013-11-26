@@ -27,7 +27,9 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             else{
                 for (i = 0; i < data.length; i++){
                     var transaction = data[i];
-                    var decrypted_data = angular.fromJson(global.crypto.decrypt(transaction["data"]));
+                    console.log("trans");
+                    console.log(transaction["data"]);
+                    var decrypted_data = global.crypto.decrypt(transaction["data"]);
                     decrypted_data.id = transaction.id;
                     decrypted_data.editMode = false;
                     $scope.transactions.push(decrypted_data);
@@ -47,10 +49,13 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         }
 
         $scope.updateTransaction = function(t){
+            var temp = {sender:t.sender, receiver:t.receiver, amount:t.amount, date:t.date, id: t.id};
+            console.log("update");
+            console.log(global.crypto.encrypt(temp));
             $http({
                 method: 'POST',
                 url: '/transactions/create/',
-                data: "id=" + t.id + "&data=" + global.crypto.encrypt(angular.toJson(t)) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
+                data: "id=" + t.id + "&data=" + global.crypto.encrypt(temp) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 t.editMode = false;

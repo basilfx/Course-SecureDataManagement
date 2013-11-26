@@ -9,6 +9,6 @@ var Crypto = function(key) {
 
 	this.encrypt = function(jsObj) {
 		console.log(jsObj);
-		return CryptoJS.AES.encrypt(JSON.stringify(jsObj), this.key);
+		return CryptoJS.AES.encrypt(JSON.stringify(jsObj), this.key).toString();
 	}
 };

@@ -4,11 +4,11 @@ var Crypto = function(key) {
 	this.cipher = CryptoJS.AES;
 	
 	this.decrypt = function(ciphertext) {
-		return CryptoJS.AES.decrypt(ciphertext, this.key).toString(CryptoJS.enc.Utf8);
+		return JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.AES.decrypt(ciphertext, this.key)));
 	}
 
 	this.encrypt = function(jsObj) {
 		console.log(jsObj);
-		return CryptoJS.AES.encrypt(jsObj, this.key).ciphertext.toString();
+		return CryptoJS.AES.encrypt(JSON.stringify(jsObj), this.key);
 	}
 };

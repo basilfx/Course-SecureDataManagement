@@ -1,7 +1,8 @@
 var global = {
 	privateKey: "",
 	crypto: undefined,
-	clientId: undefined
+	clientId: undefined,
+	clientName: ""
 };
 
 function checkUser(loc) {
@@ -15,6 +16,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
     	checkUser($location);
 
     	$scope.isConsultant  = global.privateKey.length > 0;
+    	$scope.clientName = global.clientName;
 
         $scope.transactions = [];
         $scope.testdata = "";
@@ -101,8 +103,9 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
                 for (i = 0; i < data.length; i++){
                     var client = data[i];
                     client.switch = function(){
-                        global.client_id = this.id;
+                        global.clientId = this.id;
                         global.crypto = new Crypto(decryptClientKey(this.sym_key_cons));
+                        global.clientName = this.name;
                         $location.path("/transactions");
                     }
 
@@ -118,6 +121,9 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
 paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$rootScope', '$location',
     function($scope,$http,$rootScope,$location) {
     	checkUser($location);
+
+    	$scope.isConsultant  = global.privateKey.length > 0;
+    	$scope.clientName = global.clientName;
 
         $scope.search_form = search_form;
         $scope.search_form.amount.operation = $scope.search_form.amount.operations[0];
@@ -192,6 +198,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 				if(data["login_successful"]==true){
 					if($scope.isConsultant) {
 						global.privateKey = $scope.privKey;
+						global.clientName = data["client_name"];
 						global.crypto = new Crypto(decryptClientKey(data["client_key"]));
 					} else {
 						global.crypto = new Crypto(CryptoJS.SHA3($scope.user.username + $scope.user.password).toString());

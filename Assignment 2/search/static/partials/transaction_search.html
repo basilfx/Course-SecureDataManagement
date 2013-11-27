@@ -1,4 +1,10 @@
 <h1>Search</h1>
+<div ng-if="isConsultant" class="pull-right">
+  Current client: {{clientName}}
+  <a class="btn btn-sm btn-default" href="#/clients" >
+    Switch clients
+  </a>
+</div>
 
 <form class="form-inline" role="form">
   <div class="row">

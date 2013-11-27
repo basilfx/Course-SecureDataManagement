@@ -56,7 +56,7 @@ def consultant_login(request):
     if user is not None:
         if user.is_active:
             login(request, user)
-            return {"login_successful": True, "client_id": client.id, "client_key": client.sym_key_cons }
+            return {"login_successful": True, "client_id": client.id, "client_name": client.name, "client_key": client.sym_key_cons }
 
     return {"login_successful" : False}
 

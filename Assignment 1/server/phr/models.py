@@ -10,9 +10,9 @@ class Record(models.Model):
 class RecordItem(models.Model):
     record = models.ForeignKey("phr.Record")
     category = models.CharField(max_length=32, choices=PHR_CATEGORIES)
-    data = models.BinaryField()
+    data = models.TextField()
 
 class Key(models.Model):
     record = models.ForeignKey("phr.Record")
     category = models.CharField(max_length=32, choices=PHR_CATEGORIES)
-    data = models.BinaryField()
+    data = models.TextField()

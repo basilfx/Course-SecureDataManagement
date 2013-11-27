@@ -51,11 +51,12 @@ def consultant_login(request):
 
     user = authenticate(username=username, password=password)
     consultant = Consultant.objects.get(user=user)
+    client = Client.objects.filter(consultant=consultant)[0]
 
     if user is not None:
         if user.is_active:
             login(request, user)
-            return {"login_successful": True }
+            return {"login_successful": True, "client_id": client.id, "client_key": client.sym_key_cons }
 
     return {"login_successful" : False}
 
@@ -123,7 +124,7 @@ def client_list(request):
     clients = Client.objects.filter(consultant_id=consultant.id)
     data = []
     for client in clients:
-        data.append(model_to_dict(transaction, fields=["id", "name"]))
+        data.append(model_to_dict(client, fields=["id", "name", "sym_key_cons"]))
 
     return data
 

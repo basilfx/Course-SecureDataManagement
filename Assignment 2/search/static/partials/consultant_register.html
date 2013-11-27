@@ -11,7 +11,7 @@
   </div>
   <div class="form-group" ng-show="isGenerated">
   	<p>We have generated the following private key for you. Please save it in a secure location.</p>
-  	<textarea class="form-control" ng-model="privKey" rows="5" disabled>
+  	<textarea class="form-control" ng-model="privKey" rows="12" disabled>
   		
   	</textarea>
   </div>
@@ -19,4 +19,3 @@
   <button ng-click="generateKey()" class="btn btn-default btn-lg">Generate key</button>
   <button ng-click="register()" ng-disabled="!isGenerated" class="btn btn-primary btn-lg">Register</button>
 </form>
-

@@ -1,6 +1,10 @@
 <div class="alert alert-danger" ng-show="errordata">
 	{{errordata}}
 </div>
+<a class="btn btn-sm btn-default pull-right" href="#/clients" ng-if="isConsultant">
+	Switch clients
+</a>
+
 <h1>Transactions</h1>
 
 <table class="table table-striped" style="table-layout: fixed;">

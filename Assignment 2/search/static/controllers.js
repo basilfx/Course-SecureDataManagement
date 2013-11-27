@@ -14,6 +14,8 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
     function($scope,$http, $location) {
     	checkUser($location);
 
+    	$scope.isConsultant  = global.privateKey.length > 0;
+
         $scope.transactions = [];
         $scope.testdata = "";
         $scope.errordata = "";
@@ -93,12 +95,15 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
             if(data["login_successful"] == false){
                 $location.path("/login");
             }
-            else{
+            else{;
                 for (i = 0; i < data.length; i++){
                     var client = data[i];
-                    client.view_transactions = function(){
-                        //TODO
+                    client.switch = function(){
+                        global.client_id = this.id;
+                        global.crypto = new Crypto(decryptClientKey(this.sym_key_cons));
+                        $location.path("/transactions");
                     }
+
                     $scope.clients.push(client);
                 }
             }
@@ -152,6 +157,16 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
     }
 ]);
 
+function decryptClientKey(encKey) {
+	var rsa = new RSAKey();
+	var p = global.privateKey.split("|");
+	console.log(p);
+	rsa.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+	var res = rsa.decrypt(encKey);
+	console.log(res);
+	return res;
+}
+
 paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
 		$scope.user = { username: "", password: ""};
@@ -173,10 +188,11 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 				if(data["login_successful"]==true){
 					if($scope.isConsultant) {
 						global.privateKey = $scope.privKey;
+						global.crypto = new Crypto(decryptClientKey(data["client_key"]));
 					} else {
-						global.clientId = parseInt(data["client_id"]);
 						global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
-					}
+					} 
+					global.clientId = parseInt(data["client_id"]);
 
 					$location.path("/");
 				}
@@ -252,7 +268,10 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 			rsa.generate(2048, '10001');
 			$scope.pubExp = rsa.e.toString(16);
 			$scope.pubMod = rsa.n.toString(16);
-			$scope.privKey = rsa.d.toString(16);
+			$scope.privKey = [
+								rsa.n.toString(16), rsa.e.toString(16), rsa.d.toString(16), rsa.p.toString(16),
+						      	rsa.q.toString(16), rsa.dmp1.toString(16), rsa.dmq1.toString(16), rsa.coeff.toString(16)
+						      ].join("|");
 			$scope.isGenerated = true;
 		}
 

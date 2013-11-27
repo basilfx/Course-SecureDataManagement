@@ -2,17 +2,18 @@
 	{{errordata}}
 </div>
 <h1>Clients</h1>
-
-<table class="table table-striped" style="table-layout: fixed;">
+<table class="table table-striped">
 	<thead>
 		<tr>
 			<th>Name</th>
+			<th></th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr ng-repeat="c in clients">
+			<td>{{c.name}}</td>
 			<td>
-				<div ng-click="t.view_transactions()">{{t.name}}</div>
+				<button class="btn btn-sm btn-default" ng-click="c.switch();">Switch</button>
 			</td>
 		</tr>
 	</tbody>

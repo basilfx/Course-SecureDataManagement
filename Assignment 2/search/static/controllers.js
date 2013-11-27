@@ -1,11 +1,11 @@
 var global = {
 	privateKey: "",
 	crypto: undefined,
-	userId: undefined
+	clientId: undefined
 };
 
 function checkUser(loc) {
-	if(!global.userId || !global.crypto) loc.path("/login");
+	if(!global.clientId || !global.crypto) loc.path("/login");
 }
 
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
@@ -18,7 +18,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         $scope.testdata = "";
         $scope.errordata = "";
 
-        $http({method: 'GET', url: '/transactions/'
+        $http({method: 'GET', url: '/transactions/?client_id=' + global.clientId
         }).success(function(data, status, headers, config) {
 			checkUser($location);
             if(data["login_successful"] == false){
@@ -51,7 +51,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             $http({
                 method: 'POST',
                 url: '/transactions/create/',
-                data: "id=" + t.id + "&data=" + global.crypto.encrypt(temp) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
+                data: "client_id=" + global.clientId + "&id=" + t.id + "&data=" + global.crypto.encrypt(temp) + "&amount_bucket=" + amountToBucket(t.amount) + "&date_bucket=" + dateToBucket(t.date),
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 t.editMode = false;
@@ -124,7 +124,7 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
             if($scope.search_form.is_ready_for_search()) {
                 $scope.search_url = $scope.search_form.generate_url();
                 $scope.transactions = [];
-                $http({method: 'GET', url: '/search/' + $scope.search_url
+                $http({method: 'GET', url: '/search/' + $scope.search_url + '&client_id=' + global.clientId
                 }).success(function(data, status, headers, config) {
                     if(data["login_successful"]==false){
                         $location.path("/login");
@@ -174,7 +174,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 					if($scope.isConsultant) {
 						global.privateKey = $scope.privKey;
 					} else {
-						global.userId = 1;
+						global.clientId = parseInt(data["client_id"]);
 						global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
 					}
 
@@ -260,7 +260,7 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 			$http({
                 method: 'POST',
                 url: '/consultant-register/',
-                data: "username=" +$scope.user.username + "&password=" + CrypoJS.SHA256($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
+                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){

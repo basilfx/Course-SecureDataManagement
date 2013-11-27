@@ -31,8 +31,8 @@ def client_index(request):
 @require_POST
 @json_response
 def client_login(request):
-    username = request.POST.__getitem__('username')
-    password = request.POST.__getitem__('password')
+    username = request.POST.get('username')
+    password = request.POST.get('password')
 
     user = authenticate(username=username, password=password)
     client = Client.objects.get(user=user)
@@ -46,8 +46,8 @@ def client_login(request):
 @require_POST
 @json_response
 def consultant_login(request):
-    username = request.POST.__getitem__('username')
-    password = request.POST.__getitem__('password')
+    username = request.POST.get('username')
+    password = request.POST.get('password')
 
     user = authenticate(username=username, password=password)
     consultant = Consultant.objects.get(user=user)
@@ -82,10 +82,10 @@ def client_register(request):
 
 @json_response
 def consultant_register(request):
-    username = request.POST.__getitem__('username')
-    password = request.POST.__getitem__('password')
-    public_exp = request.POST.__getitem__('public_exp')
-    public_mod = request.POST.__getitem__('public_mod')
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    public_exp = request.POST.get('public_exp')
+    public_mod = request.POST.get('public_mod')
     user = User.objects.create_user(username, None, password)
     user.save()
     consultant = Consultant(user=user,name=username,public_exp=public_exp,public_mod=public_mod)
@@ -97,7 +97,8 @@ def consultant_register(request):
 @json_response
 def transactions(request):
     user = request.user
-    client = Client.objects.get(user=user)
+    client_id = request.GET.get('client_id')
+    client = Client.objects.get(id=client_id)
     transactions = Transaction.objects.filter(client_bucket=client.client_bucket)
     data = []
     for transaction in transactions:
@@ -131,7 +132,8 @@ def client_list(request):
 @json_response
 def transactions_create(request):
     user = request.user
-    client = Client.objects.get(user=user)
+    client_id=request.POST.get('client_id')
+    client = Client.objects.get(id=client_id)
     client_bucket = client.client_bucket
     id = request.POST.get('id')
     data = request.POST.get('data')
@@ -158,7 +160,8 @@ def transactions_create(request):
 @json_response
 def transactions_delete(request):
     user = request.user
-    client = Client.objects.get(user=user)
+    client_id=request.POST.get('client_id')
+    client = Client.objects.get(id=client_id)
     client_bucket = client.client_bucket
     id = request.POST.get('id')
 
@@ -180,7 +183,8 @@ def search_amount_date(request):
         return Http404()
 
     user = request.user
-    client = Client.objects.get(user=user)
+    client_id=request.GET.get('client_id')
+    client = Client.objects.get(id=client_id)
 
     if amounts and dates:
         query = amounts.split(',')

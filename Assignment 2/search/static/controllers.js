@@ -167,11 +167,14 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
     }
 ]);
 
-function decryptClientKey(encKey) {
+function decryptClientKey(encKeyHexStr) {
+	var encKey = new BigInteger(encKeyHexStr);
 	var rsa = new RSAKey();
 	var p = global.privateKey.split("|");
+	console.log(encKey);
 	console.log(p);
 	rsa.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+	console.log(rsa);
 	var res = rsa.decrypt(encKey);
 	console.log(res);
 	return res;
@@ -234,10 +237,11 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
         $scope.register = function(){
         	// First hash and then encrypt the symmetric key
-            var hashed_key = CryptoJS.SHA3($scope.user.username + $scope.user.password);
+            var hashed_key = CryptoJS.SHA3($scope.user.username + $scope.user.password).toString();
             var rsa = new RSAKey();
             rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
             var encrypted_key = rsa.encrypt(hashed_key);
+   			console.log(encrypted_key);
 
             $http({
                 method: 'POST',
@@ -277,8 +281,10 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 		$scope.generateKey = function() {
 			var rsa = new RSAKey();
 			rsa.generate(2048, '10001');
+			console.log(rsa);
 			$scope.pubExp = rsa.e.toString(16);
 			$scope.pubMod = rsa.n.toString(16);
+			console.log($scope.pubMod);
 			$scope.privKey = [
 								rsa.n.toString(16), rsa.e.toString(16), rsa.d.toString(16), rsa.p.toString(16),
 						      	rsa.q.toString(16), rsa.dmp1.toString(16), rsa.dmq1.toString(16), rsa.coeff.toString(16)

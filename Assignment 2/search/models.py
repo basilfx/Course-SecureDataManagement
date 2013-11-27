@@ -16,5 +16,5 @@ class Client(models.Model):
 class Consultant(models.Model):
 	name = models.CharField(max_length=100)
 	public_exp = models.CharField(max_length=1024)
-	public_mod = models.CharField(max_length=100)
+	public_mod = models.TextField()
 	user = models.OneToOneField('auth.User')

@@ -137,7 +137,6 @@ def transactions_create(request):
     client_bucket = client.client_bucket
     id = request.POST.get('id')
     data = request.POST.get('data')
-    print data
     amount_bucket = request.POST.get('amount_bucket')
     date_bucket = request.POST.get('date_bucket')
 

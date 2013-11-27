@@ -28,9 +28,11 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
                 for (i = 0; i < data.length; i++){
                     var transaction = data[i];
                     var decrypted_data = global.crypto.decrypt(transaction["data"]);
-                    decrypted_data.id = transaction.id;
-                    decrypted_data.editMode = false;
-                    $scope.transactions.push(decrypted_data);
+                    if (decrypted_data){
+                        decrypted_data.id = transaction.id;
+                        decrypted_data.editMode = false;
+                        $scope.transactions.push(decrypted_data);
+                    }
                 }
             }
         }).error(function(data, status, headers, config) {
@@ -133,12 +135,14 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
                         for (i = 0; i < data.length; i++){
                             var transaction = data[i];
                             var decrypted_data = global.crypto.decrypt(transaction['data']);
-                            decrypted_data.id = transaction.id;
-                            decrypted_data.editMode = false;
-                            decrypted_data.update = $scope.updateTransaction;
-                            decrypted_data.delete = $scope.deleteTransaction;
-                            if($scope.search_form.is_valid_result(decrypted_data)){
-                                $scope.transactions.push(decrypted_data);
+                            if (decrypted_data){
+                                decrypted_data.id = transaction.id;
+                                decrypted_data.editMode = false;
+                                decrypted_data.update = $scope.updateTransaction;
+                                decrypted_data.delete = $scope.deleteTransaction;
+                                if($scope.search_form.is_valid_result(decrypted_data)){
+                                    $scope.transactions.push(decrypted_data);
+                                }
                             }
                         }
                     }
@@ -175,7 +179,7 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 						global.privateKey = $scope.privKey;
 					} else {
 						global.clientId = parseInt(data["client_id"]);
-						global.crypto = new Crypto(CryptoJS.SHA3($scope.password).toString());
+						global.crypto = new Crypto(CryptoJS.SHA3($scope.user.username + $scope.user.password).toString());
 					}
 
 					$location.path("/");
@@ -207,7 +211,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
         $scope.register = function(){
         	// First hash and then encrypt the symmetric key
-            var hashed_key = CryptoJS.SHA3($scope.user.password);
+            var hashed_key = CryptoJS.SHA3($scope.user.username + $scope.user.password);
             var rsa = new RSAKey();
             rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
             var encrypted_key = rsa.encrypt(hashed_key);

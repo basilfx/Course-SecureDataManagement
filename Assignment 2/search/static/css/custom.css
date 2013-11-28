@@ -8,8 +8,8 @@ input.ng-invalid {
 }
 
 .transaction.ng-enter {
-	-webkit-animation: bounceInUp 0.5s;
-	animation: bounceInUp 0.5s;
+	-webkit-animation: fadeInUp 0.5s;
+	animation: fadeInUp 0.5s;
 }
 
 .transaction.ng-leave {

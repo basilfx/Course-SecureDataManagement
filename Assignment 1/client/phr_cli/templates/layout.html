@@ -34,9 +34,6 @@
         {% block navbar %}
             <div id="top-nav" class="navbar navbar-inverse navbar-static-top">
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-toggle"></span>
-                    </button>
                     <a class="navbar-brand" href="{% url 'phr_cli.views.index' %}">PHR Demo</a>
 
                     {% if storage %}
@@ -70,7 +67,7 @@
             </div>
         {% endblock navbar %}
 
-        <div class="container">
+        <div class="container" id="main">
             {% block notifications %}
                 <!-- Notification header -->
 

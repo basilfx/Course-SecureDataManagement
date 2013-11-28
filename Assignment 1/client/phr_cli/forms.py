@@ -48,7 +48,7 @@ class SelectDataFileForm(forms.Form):
         self.fields["data_file"].choices = list_data_files()
 
 class ConnectPHRForm(forms.Form):
-    host = forms.URLField()
+    host = forms.URLField(initial="http://127.0.0.1:8000")
     key_data = forms.CharField(max_length=1024*1024, widget=forms.Textarea())
 
     # Form layout
@@ -65,7 +65,7 @@ class ConnectPHRForm(forms.Form):
     )
 
 class CreatePHRForm(forms.Form):
-    host = forms.URLField()
+    host = forms.URLField(initial="http://127.0.0.1:8000")
     record_name = forms.CharField(max_length=128)
 
     # Form layout
@@ -136,4 +136,4 @@ class GrantForm(CategoryPartiesForm):
     )
 
     def __init__(self, storage, *args, **kwargs):
-        super(GrantForm, self).__init__(storage, True, *args, **kwargs)
+        super(GrantForm, self).__init__(storage, False, *args, **kwargs)

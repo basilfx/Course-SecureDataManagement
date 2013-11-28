@@ -17,8 +17,8 @@ paySafeApp.config(['$routeProvider',
 				controller: 'TransactionSearchCtrl'
 			}).
 			when('/login',{
-				templateUrl: staticUrl + '/partials/client_login.html',
-				controller: 'ClientLoginCtrl'
+				templateUrl: staticUrl + '/partials/login.html',
+				controller: 'LoginCtrl'
 			}).
 			when('/register',{
 				templateUrl: staticUrl + '/partials/client_register.html',
@@ -33,8 +33,8 @@ paySafeApp.config(['$routeProvider',
 				controller: 'ClientListCtrl'
 			}).
 			when('/logout',{
-				templateUrl: staticUrl + '/partials/client_login.html',
-				controller: 'ClientLogoutCtrl'
+				templateUrl: staticUrl + '/partials/login.html',
+				controller: 'LogoutCtrl'
 			}).
 			otherwise({
 				redirectTo: '/'

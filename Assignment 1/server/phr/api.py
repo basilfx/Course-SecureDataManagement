@@ -154,6 +154,7 @@ def find_keys(request, record_id, lookups):
     items = Key.objects.filter(record_id=record_id) \
                        .filter(**lookups) \
                        .values_list("pk", flat=True)
+
     return list(items)
 
 @jsonrpc_method("find_record_items")

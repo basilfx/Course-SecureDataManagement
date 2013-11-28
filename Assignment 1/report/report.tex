@@ -75,19 +75,35 @@
 	This section describes the practical implementation of the assignment.
 	
 	\subsection{Architecture}
-		The implementation consist of two parts. The first part is a storage server which does nothing more than saving records and providing records. The client part is a web application for all parties, but in a real situation, we assume that each type of party would have access to a own terminal to access PHR's. In fact, if it would be possible to have the server provide a terminal if we could implement CP-ABE in pure JavaScript (so encryption can stay local).
+		The implementation consist of two parts. The first part is a storage server which does nothing more than saving records and providing records. The client part is a web application for all parties, but in a real situation, we assume that each type of party would have access to a own terminal to access PHR's. In fact, if it would be possible to have the server provide a GUI if we could implement CP-ABE in pure JavaScript (so encryption can stay local). Figure \ref{fig:architecture} depicts this architecture.
+		
+		\begin{figure}[H]
+	        \centering
+            \includegraphics[width=0.75\columnwidth]{figures/architecture.pdf}
+	     	\caption{Overview of architecture where the patient and several parties exchange data.}
+			\label{fig:architecture}
+		\end{figure}
 		
 		All software is written in Python. To create web pages, the Django Framework\footnote{\url{https://www.djangoproject.com/}} is used. The encryption is provided by the Charm Crypto\footnote{\url{http://www.charm-crypto.com/}} library.
 	
-		When a patient wants to create a PHR, he queries the server for the public system parameters. The system parameters include the categories, the involved parties and the mappings. The mappings describe for which party the client will generate read key with what attributes. For example, a mapping from \texttt{PERSONAL => EMPLOYER, INSURANCE, HOSPITAL+A+B} will result in read keys based on the master key for the category personal data. Employer will receive the attribute EMPLOYER and the Insurance the attribute INSURANCE. Hospital-A and Hospital-B will both get their own attribute A and B, but also the shared attribute HOSPITAL. Keys should be distributed in a secure way, preferably out-of-band.
+		When a patient wants to create a PHR, he queries the server for the public system parameters. The system parameters include the categories, the involved parties and the mappings. The mappings describe for which party the client will generate read key with what attributes. For example, a mapping from \texttt{PERSONAL => EMPLOYER, INSURANCE, HOSPITAL+A+B} will result in read keys based on the master key for the category personal data. Employer will receive the attribute \texttt{EMPLOYER} and the Insurance the attribute \texttt{INSURANCE}. Hospital-A and Hospital-B will both get their own attribute \texttt{A} and \texttt{B}, but also the shared attribute \texttt{HOSPITAL}. Keys should be distributed in a secure way, preferably out-of-band (OOB).
 		
-		Encryption is done by specifying the plaintext, the category and the parties. Parties are unfolded to a policy. We use Python tuples and lists to map to and and or. For example, \texttt{[(HOSPITAL-A, HOSPITAL-B), INSURANCE]} will result in the policy \texttt{(((HOSPITAL and A) and (HOSPITAL and B)) or INSURANCE)}. This allows us to build policies much more dynamic and coupled with Django. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories not in the system. A cipher text has a little bit of meta data attached that is public. This way, a receiving party knows which category the cipher text belongs to and also which read key(s) to use.
+		Encryption is done by specifying the plaintext, the category and the parties. Parties are unfolded to a policy. We use Python tuples and lists to define which parties have access and convert those to policy strings. Some examples (Python to policies):
 		
-		\todo[inline]{Granting keys}
+		\begin{itemize}
+			\item \texttt{[INSURANCE, DOCTOR]} $\rightarrow$ \texttt{(INSURANCE or DOCTOR)}
+			\item \texttt{(INSURANCE, DOCTOR)} $\rightarrow$ \texttt{(INSURANCE and DOCTOR)}
+			\item \texttt{[HOSPITAL, DOCTOR]} $\rightarrow$ \texttt{(HOSPITAL and A) or (HOSPITAL and B) or (HOSPITAL and C) or DOCTOR}
+			\item \texttt{[(HOSPITAL-A, HOSPITAL-B), INSURANCE]} $\rightarrow$ \texttt{((HOSPITAL and A) and (HOSPITAL and B)) or INSURANCE}
+		\end{itemize}
 		
-		In short, one can see our implementation as a layer between the actual CP-ABE scheme and the user.
+		This allows us to build policies much more dynamic and coupled with our protocol. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories not in the system. A cipher text contains a little bit of meta data that can be read without decrypting. This way, a receiving party knows which category the cipher text belongs to and thus which read key(s) to use.
+		
+		Sharing a write key is similar to encrypting data. There is only one write key per category and this key is generated during the creation of a PHR. The patient grants another party write access by encrypting the write key with the read key of the party or parties and uploads it to the server. Then, the party who will receive a key, retrieves this key from the server and decrypts it. The write key is added to the key chain. Now, the party can encrypt data.
+		
+		In short, one can consider our implementation as a strict extension layer between the actual CP-ABE scheme and the user.
 				
-		All relevant parts\footnote{All code not related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
+		All relevant parts\footnote{All code not directly related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
 	
 	\subsection{Database model}
 		The role of the database is minimal. This also resulted in a very small database model. The model is flexible, so we are not limited to any number of categories or parties.
@@ -104,7 +120,7 @@
 		Data is saved in Base64 encoded string, representing the cipher text.
 	
 	\subsection{Verification of requirements}
-		The assignment includes the following requirements:
+		The assignment considers the following requirements:
 		
 		\begin{enumerate}
 			\item{A patient can insert personal health data into his \textit{own} record.}
@@ -238,7 +254,7 @@ Cannot decrypt record item
 			\end{lstlisting}
 		
 		\subsubsection{Retrieving write access}\label{sec:usecase_6}
-			In step XXX we provided Hospital-A with a write key. The party should retrieve the key from the server.
+			In use case \ref{sec:usecase_3} we provided Hospital-A with a write key. The party should retrieve the key from the server.
 			
 			\begin{lstlisting}
 >>> python manage.py phr_retrieve hospital-a.json HEALTH
@@ -372,6 +388,7 @@ Cannot decrypt record item
 			We conclude this section with a table representing which requirement is fulfilled by which use case.
 
 			\begin{table}[h!]
+				\center
 			    \begin{tabular}{| l | l | l | l | l |} \hline
 			    ~                            & Requirement 1 & Requirement 2 & Requirement 3 & Requirement 4 \\ \hline
 			    Use case \ref{sec:usecase_1} & ~             & X             & ~             & ~             \\ \hline
@@ -383,14 +400,16 @@ Cannot decrypt record item
 			    Use case \ref{sec:usecase_7} & ~             & ~             & X             & X             \\ \hline
 			    Use case \ref{sec:usecase_8} & X             & ~             & ~             & ~             \\ \hline
 			    \end{tabular}
+			
+				\caption{Overview of which use cases cover which requirements.}
 			\end{table}
 	
 \section{Discussion}
 
 	\subsection{Authentication}
-		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the once with the right keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client.
+		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the once with the right keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client. The same holds for keys uploaded to the server. One data is sent, you should consider the cipher text compromised.
 		
-		Since this is out of the scope of this assignment, we have not implemented a counter measure.
+		Since authentication is out of the scope of this assignment, we have not implemented a counter measure.
 		
 	\subsection{Number of keys}
 		There are a lot of keys to be generated during the setup and keygen phase. There are $N$ master keys and $N$ public keys for $N$ categories. Based on the mapping, each party having read access gets at least one read key. If the number of parties (and sub parties) grow, the number of read keys grows too.

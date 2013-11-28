@@ -187,6 +187,22 @@ class ProtocolTest(TestCase):
         self.master_keys, self.public_keys = self.protocol.setup()
         self.secret_keys = self.protocol.keygen(self.master_keys, self.public_keys)
 
+    def test_exchange(self):
+        self.protocol2 = protocol.Protocol(self.categories, self.parties, self.mappings)
+        self.master_keys2, self.public_keys2 = self.protocol2.setup()
+        self.secret_keys2 = self.protocol2.keygen(self.master_keys2, self.public_keys2)
+
+        cipher_one = self.protocol.encrypt(self.message, self.public_keys, "PERSONAL", ["DOCTOR"])
+        cipher_two = self.protocol2.encrypt(self.message, self.public_keys2, "PERSONAL", ["DOCTOR"])
+
+        # Doctor two should not be able to read something ment for doctor one
+        with self.assertRaises(protocol.DecryptError) as context:
+            self.protocol2.decrypt(cipher_one, self.secret_keys2["DOCTOR"])
+
+        # Doctor one should not be able to read something ment for doctor two
+        with self.assertRaises(protocol.DecryptError) as context:
+            self.protocol.decrypt(cipher_two, self.secret_keys["DOCTOR"])
+
     def test_encrypt_decrypt_ok(self):
         cipher_one = self.protocol.encrypt(self.message, self.public_keys, "PERSONAL", ["DOCTOR", "INSURANCE"])
         cipher_two = self.protocol.encrypt(self.message, self.public_keys, "PERSONAL", ["EMPLOYER"])

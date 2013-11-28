@@ -1,3 +1,12 @@
-input.ng-invalid {
-  border: 1px solid red;
+.page.ng-enter {
+	-webkit-transition: 0.3s ease-in all; /* Safari/Chrome */
+	transition: 0.3s ease-in all; /* All other modern browsers and IE10+ */
+}
+
+.page.ng-enter {
+	opacity: 0;
+}
+
+.page.ng-enter.ng-enter-active {
+	opacity: 1;
 }

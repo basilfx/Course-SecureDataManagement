@@ -81,7 +81,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         $scope.createTransaction = function() {
             var now = new Date();
             $scope.transactions.push({
-                id: -1, sender: "", receiver: "", amount: 0,
+                id: -1, sender: "", receiver: "", amount: "",
                 description: "", date: now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay()
                 , editMode: true
             });

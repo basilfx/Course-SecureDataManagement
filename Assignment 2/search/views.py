@@ -126,6 +126,7 @@ def client_list(request):
     consultant = Consultant.objects.get(user=user)
     clients = Client.objects.filter(consultant_id=consultant.id)
     data = []
+
     for client in clients:
         data.append(model_to_dict(client, fields=["id", "name", "sym_key_cons"]))
 

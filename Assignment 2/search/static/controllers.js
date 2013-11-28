@@ -4,7 +4,11 @@ var global = {
 	clientId: undefined,
 	clientName: ""
 };
-
+/**
+ * This function ask the user whether he realy meant to refresh the page.
+ * Instance variables are lost at refresh, such as the asymetric key, 
+ * therefore a user has to login after refresh.
+ */
 window.onbeforeunload = function (e) {
     e = e || window.event;
 
@@ -16,13 +20,32 @@ window.onbeforeunload = function (e) {
     // For others
     return "When you confirm reloading, you will log out.";
 };
-
+/**
+ * Checks if the user is correctly logged in, redirects to login if he is not.
+*/
 function checkUser(loc) {
 	if(!global.clientId || !global.crypto) loc.path("/login");
 }
 
+/**
+ * Decrypts the symmetric key of the client with the private key of the consultant.
+*/
+function decryptClientKey(encKeyHexStr) {
+    var encKey = encKeyHexStr;
+    var rsa = new RSAKey();
+    var p = global.privateKey.split("|");
+    rsa.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+    var res = rsa.decrypt(encKey);
+    return res;
+}
+
 var paySafeControllers = angular.module('paySafeApp.controllers', []);
 
+/**
+ * Transaction List Controller
+ * This controller handles the listing, creating and updating of transactions.
+ * It fetches transactions from the database, and pushes changes to the database whenever needed.
+*/
 paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$location',
     function($scope,$http, $location) {
     	checkUser($location);
@@ -97,7 +120,11 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         }
     }
 ]);
-
+/**
+ * Client List Controller
+ * Generates a list of clients for the logged in Consultant. 
+ * This allows the consultant to switch to a specific client and view, update and search their transactions.
+*/
 paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
     function($scope,$http, $location) {
     	checkUser($location);
@@ -111,7 +138,7 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
             if(data["login_successful"] == false){
                 $location.path("/login");
             }
-            else{;
+            else{
                 for (i = 0; i < data.length; i++){
                     var client = data[i];
                     client.switch = function(){
@@ -129,7 +156,11 @@ paySafeControllers.controller('ClientListCtrl', ['$scope', '$http', '$location',
         });
     }
 ]);
-
+/**
+ * Transaction Searhc Controller
+ * This controller converts a search query into bucket values and sends these values to the server.
+ * The response is filtered to match the search query and displayed to the user.
+*/
 paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$rootScope', '$location',
     function($scope,$http,$rootScope,$location) {
     	checkUser($location);
@@ -178,17 +209,11 @@ paySafeControllers.controller('TransactionSearchCtrl', ['$scope', '$http','$root
         }
     }
 ]);
-
-function decryptClientKey(encKeyHexStr) {
-	var encKey = encKeyHexStr;
-	var rsa = new RSAKey();
-	var p = global.privateKey.split("|");
-	rsa.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-	var res = rsa.decrypt(encKey);
-	return res;
-}
-
-paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location',
+/**
+ * Login Controller
+ * Sends the username + hashed password to the server, switches to transactions if server returns "login_sucessful"
+*/
+paySafeControllers.controller('LoginCtrl', ['$scope', '$http', '$location',
 	function($scope,$http,$location){
 		$scope.user = { username: "", password: ""};
 		$scope.isConsultant = false;
@@ -199,11 +224,11 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 			$scope.successdata = "";
 			$scope.errordata = "";
 			var url = $scope.isConsultant ? "/consultant-login/" : "/client-login/";
-			console.log(CryptoJS.SHA256($scope.user.password));
+			console.log(CryptoJS.SHA3($scope.user.password));
 			$http({
 			    method: 'POST',
 			    url: url,
-			    data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password),
+			    data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				if(data["login_successful"]==true){
@@ -224,7 +249,12 @@ paySafeControllers.controller('ClientLoginCtrl', ['$scope', '$http', '$location'
 		}
 	}
 ]);
-
+/**
+ * Client Register Controller
+ * Shows a list of consultants to the new client.
+ * Sends the username, hashed password, and aes-key encrypted with the public key of the selected consultant.
+ * Redirects to login if registered successfully.
+*/
 paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$location',
     function($scope,$http,$location){
         $scope.user = { username: "", password: ""};
@@ -255,7 +285,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
             $http({
                 method: 'POST',
                 url: '/client-register/',
-                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password) + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
+                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password) + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){
@@ -268,10 +298,17 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
     }
 
 ]);
-
-paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location',
+/**
+ * Logout Controller
+ * Logs the current user out.
+*/
+paySafeControllers.controller('LogoutCtrl', ['$scope', '$http', '$location',
     function($scope,$http,$location){
-
+    	global.privateKey = "";
+    	global.clientId = undefined;
+    	global.crypto = undefined;
+    	global.clientName = "";
+    	
         $http({method: 'GET', url: '/logout/'
         }).success(function(data, status, headers, config) {
             $location.path("/login");
@@ -280,7 +317,12 @@ paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location
         });
         }
 ]);
-
+/**
+ * Consultant Register Controller
+ * Allows the new consultant to generate a RSA key pair and
+ * sends the public key, username and hashed password to the server.
+ * They private key is displayed, which the consultant has to store.
+*/
 paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$location',
 	function($scope, $http, $location) {
 		$scope.isGenerated = false;
@@ -304,7 +346,7 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 			$http({
                 method: 'POST',
                 url: '/consultant-register/',
-                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
+                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){

@@ -96,6 +96,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 t.editMode = false;
+                t.id = parseInt(data["id"]);
             }).error(function(data, status, headers, config) {
                 $scope.errordata =  data;
             });

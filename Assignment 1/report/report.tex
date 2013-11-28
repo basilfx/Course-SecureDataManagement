@@ -60,7 +60,7 @@
 		\end{description}
 
 \section{Access model}
-	For the CP-ABE scheme, we use the scheme by Waters \cite{waters2011ciphertext}. This scheme is part of the Charm Crypto library. Although this prototype implementation does not have to be efficient, the scheme itself is efficient in terms of encrypt/decrypt computations, cipher text size and, private key size.
+	For the CP-ABE scheme, we use the scheme by Waters \cite{waters2011ciphertext}. This scheme is part of the Charm Crypto library. Although this prototype implementation does not have to be efficient, the scheme itself is efficient in terms of encrypt/decrypt computations, ciphertext size and, private key size.
 	
 	\subsection{Mappings}\label{sec:mappings}
 		From the assignment description, we derived the following mapping from category to parties.
@@ -94,7 +94,7 @@
 		\begin{figure}[H]
 	        \centering
             \includegraphics[width=0.6\columnwidth]{figures/mapping.pdf}
-	     	\caption{Attributes are drawn with dashed borders. Categories with solid borders. One can easily see who has acces to which type of data.}
+	     	\caption{Attributes are drawn with dashed borders. Categories with solid borders.}
 			\label{fig:mapping}
 		\end{figure}
 	
@@ -105,11 +105,11 @@
 			\item[Setup]
 			The client generates a master key and public key for each category.
 			\item[Keygen]
-			Based on the mappings, for each party for a given category, a secret key will be generated. 
+			Based on the mappings, for each party for a given category, a secret key will be generated. To generate a secret key, the master key is used. Therefore, if the master key stays with the client, no other secret keys can be generated.
 			\item[Encrypt]
-			Given a message, category and receiving parties, the message will be encrypted with the public key for the given category with the policy based on the parties. The category is added as plain metadata to the cipher text.
+			Given a message, category and receiving parties, the message will be encrypted with the public key for the given category with the policy based on the parties. The category is added as plain metadata to the ciphertext.
 			\item[Decrypt]
-			For a given cipher text, decide which secret key to use based on the associated meta data. Then, decrypt the cipher text.
+			For a given ciphertext, decide which secret key to use based on the associated meta data. Then, decrypt the ciphertext.
 		\end{description}
 		
 		Section \ref{sec:architecture} will provide more details about unfolding the parties to attributes.
@@ -122,7 +122,7 @@
 	\subsection{Used libraries}
 		All software is written in Python. To create web pages, the Django Framework\footnote{\url{https://www.djangoproject.com/}} is used. The CP-ABE encryption is provided by the Charm Crypto\footnote{\url{http://www.charm-crypto.com/}} library by Akinyele, Green and Ruben \cite{cryptoeprint:2011:617}. AES encryption is provided by the Python Cryptographic Toolkit\footnote{\url{https://www.dlitz.net/software/pycrypto/}}. Web pages are rendered with the help of Bootstrap\footnote{\url{http://getbootstrap.com/}}, a front-end framework.
 	
-	\subsection{Architecture}\ref{sec:architecture}
+	\subsection{Architecture}\label{sec:architecture}
 		The implementation consist of two parts. The first part is a storage server which does nothing more than saving records and providing records. The client part is a web application for all parties, but in a real situation, we assume that each type of party would have access to a own terminal to access PHR's. In fact, if it would be possible to have the server provide a GUI if we could implement CP-ABE in pure JavaScript (so encryption can stay local). Figure \ref{fig:architecture} depicts this architecture.
 		
 		\begin{figure}[H]
@@ -134,7 +134,7 @@
 	
 		When a patient wants to create a PHR, he queries the server for the public system parameters. The system parameters include the categories, the involved parties and the mappings. The mappings describe for which party the client will generate read key with what attributes. For example, a mapping from \texttt{PERSONAL => EMPLOYER, INSURANCE, HOSPITAL+A+B} will result in read keys based on the master key for the category personal data. Employer will receive the attribute \texttt{EMPLOYER} and the Insurance the attribute \texttt{INSURANCE}. Hospital-A and Hospital-B will both get their own attribute \texttt{A} and \texttt{B}, but also the shared attribute \texttt{HOSPITAL}. Keys should be distributed in a secure way, preferably out-of-band (OOB).
 		
-		Encryption is done by specifying the plain text, the category and the parties. The actual plain text is encrypted with AES in CBC mode. The key for AES is the hash of a random element of the group where the CP-ABE scheme operates on. This random element is encrypted with the attributes for the receiver and added to the AES cipher text, so the decrypting party can resolve the AES key. To generate a policy for the CP-ABE scheme, the given list of parties is unfolded. We use Python tuples and lists to define which parties have access and convert those to policy strings. Some examples (Python to policies):
+		Encryption is done by specifying the plaintext, the category and the parties. The actual plaintext is encrypted with AES in CBC mode. The key for AES is the hash of a random element of the group where the CP-ABE scheme operates on. This random element is encrypted with the attributes for the receiver and added to the AES ciphertext, so the decrypting party can resolve the AES key. To generate a policy for the CP-ABE scheme, the given list of parties is unfolded. We use Python tuples and lists to define which parties have access and convert those to policy strings. Some examples (Python to policies):
 		
 		\begin{itemize}
 			\item \texttt{[DOCTOR]} $\rightarrow$ \texttt{DOCTOR}
@@ -145,13 +145,13 @@
 			\item \texttt{[(HOSPITAL-A, HOSPITAL-B), INSURANCE]} $\rightarrow$ \texttt{((HOSPITAL and A) and (HOSPITAL and B)) or INSURANCE}
 		\end{itemize}
 		
-		Above conversions allow us to build policies much more dynamic and coupled with our protocol. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories that are not part of the system. A cipher text contains a little bit of meta data that can be read without decrypting. This way, a receiving party knows to which category the cipher text belongs and thus which read key(s) to consider.
+		Above conversions allow us to build policies much more dynamic and coupled with our protocol. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories that are not part of the system. A ciphertext contains a little bit of meta data that can be read without decrypting. This way, a receiving party knows to which category the ciphertext belongs and thus which read key(s) to consider.
 		
 		Sharing a write key is similar to encrypting data. There is only one write key per category and this key is generated during the creation of a PHR. The patient grants another party write access by encrypting the write key with the read key of the party or parties and uploads it to the server. Then, the party who will receive a key, retrieves this key from the server and decrypts it. The write key is added to the key chain. Now, the party can encrypt data.
 		
 		In short, one can consider our implementation as a strict extension layer between the actual CP-ABE scheme and the user.
 				
-		All relevant parts\footnote{All code not directly related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
+		All business logic is documented and tested. We refer to the source code and README for an in-depth overview.
 	
 	\subsection{Database model}
 		The role of the database is minimal. This resulted in a very small database model. The model is flexible, so we are not limited to any number of categories or parties.
@@ -167,7 +167,7 @@
 			\item \textbf{ID} - The record item ID.
 			\item \textbf{Record ID} - The ID of the record this record item belongs to.
 			\item \textbf{Category} - Text representation of the category this record item belongs to.
-			\item \textbf{Cipher text} - Actual cipher text.
+			\item \textbf{ciphertext} - Actual ciphertext.
 		\end{itemize}
 		
 		\textbf{Key}
@@ -175,10 +175,10 @@
 			\item \textbf{ID} - The record item ID.
 			\item \textbf{Record ID} - The ID of the record this key belongs to.
 			\item \textbf{Category} - Text representation of the category this key belongs to.
-			\item \textbf{Key cipher text} - Actual cipher text containing the key.
+			\item \textbf{Key ciphertext} - Actual ciphertext containing the key.
 		\end{itemize}
 	
-		Cipher text is saved in a Base64 encoded string.
+		ciphertext is saved in a Base64 encoded string.
 	
 	\subsection{Verification of requirements}
 		The assignment considers the following requirements:
@@ -481,7 +481,7 @@ Cannot decrypt record item
 \section{Discussion}
 
 	\subsection{Authentication}
-		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the parties with the correct keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client. The same holds for keys uploaded to the server. Once data is sent, you should consider the cipher text compromised.
+		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the parties with the correct keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client. The same holds for keys uploaded to the server. Once data is sent, you should consider the ciphertext compromised.
 		
 		Since authentication is out of the scope of this assignment, we have not implemented a counter measure.
 		

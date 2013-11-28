@@ -271,7 +271,11 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 
 paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location',
     function($scope,$http,$location){
-
+    	global.privateKey = "";
+    	global.clientId = undefined;
+    	global.crypto = undefined;
+    	global.clientName = "";
+    	
         $http({method: 'GET', url: '/logout/'
         }).success(function(data, status, headers, config) {
             $location.path("/login");

@@ -5,6 +5,18 @@ var global = {
 	clientName: ""
 };
 
+window.onbeforeunload = function (e) {
+    e = e || window.event;
+
+    // Don't confirm when not required
+    if (!global.clientId) {
+        return;
+    }
+
+    // For others
+    return "When you confirm reloading, you will log out.";
+};
+
 function checkUser(loc) {
 	if(!global.clientId || !global.crypto) loc.path("/login");
 }
@@ -171,13 +183,8 @@ function decryptClientKey(encKeyHexStr) {
 	var encKey = encKeyHexStr;
 	var rsa = new RSAKey();
 	var p = global.privateKey.split("|");
-	console.log(encKey);
-	console.log(p);
 	rsa.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-	console.log(rsa);
 	var res = rsa.decrypt(encKey);
-	console.log(res);
-    debugger;
 	return res;
 }
 
@@ -272,7 +279,6 @@ paySafeControllers.controller('ClientLogoutCtrl', ['$scope', '$http', '$location
             $location.path("/login");
         });
         }
-
 ]);
 
 paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$location',
@@ -292,23 +298,6 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 						      	rsa.q.toString(16), rsa.dmp1.toString(16), rsa.dmq1.toString(16), rsa.coeff.toString(16)
 						      ].join("|");
 			$scope.isGenerated = true;
-
-            var rsa3 = new RSAKey();
-            console.log($scope.privKey);
-            p = $scope.privKey.split("|");
-            rsa3.setPrivateEx(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-
-            console.log([
-                rsa.n.equals(rsa3.n),
-                rsa.e == rsa3.e,
-                rsa.d.equals(rsa3.d),
-                rsa.p.equals(rsa3.p),
-                rsa.q.equals(rsa3.q),
-                rsa.dmp1.equals(rsa3.dmp1),
-                rsa.dmq1.equals(rsa3.dmq1),
-                rsa.coeff.equals(rsa3.coeff),
-            ])
-            debugger;
 		}
 
 		$scope.register = function() {
@@ -325,6 +314,5 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 
             });
 		}
-		
 	}
 ])

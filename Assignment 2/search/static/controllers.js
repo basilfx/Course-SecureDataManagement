@@ -81,7 +81,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
         $scope.createTransaction = function() {
             var now = new Date();
             $scope.transactions.push({
-                id: -1, sender: "", receiver: "", amount: 0,
+                id: -1, sender: "", receiver: "", amount: "",
                 description: "", date: now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay()
                 , editMode: true
             });
@@ -96,6 +96,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 t.editMode = false;
+                t.id = parseInt(data["id"]);
             }).error(function(data, status, headers, config) {
                 $scope.errordata =  data;
             });
@@ -108,7 +109,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             $http({
                 method: 'POST',
                 url: '/transactions/delete/',
-                data: "id=" + t.id,
+                data: "id=" + t.id + "&client_id=" + global.clientId,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).error(function(data, status, headers, config) {
                 $scope.errordata =  data;
@@ -244,7 +245,7 @@ paySafeControllers.controller('LoginCtrl', ['$scope', '$http', '$location',
 					$location.path("/");
 				}
 			}).error(function(data, status, headers, config) {
-				
+				$scope.loginFailed = true;
 			});
 		}
 	}
@@ -268,15 +269,12 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
                 $scope.consultants.push(consultant);
             }
             $scope.consultant = $scope.consultants[0];    
-        }).error(function(data, status, headers, config) {
-            $scope.errordata = data;
         });
 
 
         $scope.register = function(){
         	// First hash and then encrypt the symmetric key
             var hashed_key = CryptoJS.SHA3($scope.user.username + $scope.user.password).toString();
-            debugger;
             var rsa = new RSAKey();
             rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
             var encrypted_key = rsa.encrypt(hashed_key);
@@ -292,8 +290,8 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
                     $location.path("/login");
                 }
             }).error(function(data, status, headers, config) {
-
-            });
+            	$scope.registerFailed = true;
+        	});
         }
     }
 

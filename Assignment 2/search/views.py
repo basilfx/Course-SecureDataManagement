@@ -149,7 +149,7 @@ def transactions_create(request):
         t = Transaction(data=data, amount_bucket=amount_bucket,date_bucket=date_bucket,client_bucket=client_bucket)
         t.save()
 
-        return {"message": "Transaction created"};
+        return {"message": "Transaction created", "id": t.id};
     else:
         t = Transaction.objects.get(id=int(id), client_bucket=client_bucket)
         t.data = data
@@ -157,7 +157,7 @@ def transactions_create(request):
         t.date_bucket = date_bucket
         t.save()
 
-        return {"message": "Transaction updated"};
+        return {"message": "Transaction updated", "id": t.id};
 
 @require_POST
 @login_required

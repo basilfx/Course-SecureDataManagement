@@ -1,0 +1,29 @@
+<h2>Login</h2>
+<div class="alert alert-danger alert-dismissable" ng-if="loginFailed">
+  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+  Something went wrong logging you in. Check your credentials and try again.
+</div>
+<form role="form">
+
+  <div class="form-group">
+    <label class="sr-only" for="usernamefield">Username</label>
+    <input type="text" class="form-control" ng-model="user.username" id="usernamefield" placeholder="Enter Username">
+  </div>
+  <div class="form-group">
+    <label class="sr-only" for="passwordfield">Password</label>
+    <input type="password" ng-model="user.password" class="form-control" id="passwordfield" placeholder="Password">
+  </div>
+  <div class="checkbox">
+  	<label>
+		<input type="checkbox" ng-model="isConsultant"> I'm a consultant
+  	</label>
+  </div>
+  <div class="form-group" ng-show="isConsultant">
+  	<p>Please enter your private key below to access your clients' data. We store this key in your web browser, and it is not sent to our servers.</p>
+  	<label class="sr-only" for="privkey">Private key</label>
+  	<textarea class="form-control" name="privkey" rows="5" placeholder="Copy your private key here" ng-model="privKey"></textarea>
+  </div>
+  <button ng-click="login()" class="btn btn-primary btn-lg">Sign in</button>
+  <a href="#/register" class="btn btn-default btn-lg">Register as client</a>
+  <a href="#/register-consultant" class="btn btn-default btn-lg">Register as consultant</a>
+</form>

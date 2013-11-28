@@ -108,7 +108,7 @@ paySafeControllers.controller('TransactionListCtrl', ['$scope', '$http', '$locat
             $http({
                 method: 'POST',
                 url: '/transactions/delete/',
-                data: "id=" + t.id,
+                data: "id=" + t.id + "&client_id=" + global.clientId,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).error(function(data, status, headers, config) {
                 $scope.errordata =  data;
@@ -276,7 +276,6 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
         $scope.register = function(){
         	// First hash and then encrypt the symmetric key
             var hashed_key = CryptoJS.SHA3($scope.user.username + $scope.user.password).toString();
-            debugger;
             var rsa = new RSAKey();
             rsa.setPublic($scope.consultant.public_mod, $scope.consultant.public_exp);
             var encrypted_key = rsa.encrypt(hashed_key);

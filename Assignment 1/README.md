@@ -52,5 +52,5 @@ The following files are of importance to the assignment.
 * `server/api.py` &mdash; Interface between a party and the server.
 * `server/settings.py` &mdash; Server configuration file. Bottom part defines the categories, parties and mappings.
 
-Most of the files are documented. The tests covers most (at least the required) functionality. Test can be run via `python manage.py test` in the `client` directory.
+Most of the files are documented. The tests covers most (at least the required) functionality. Test can be run via `python manage.py test` in the `client` or `server` directory.
 

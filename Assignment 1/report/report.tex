@@ -26,13 +26,14 @@
 \maketitle
 
 \section{Introduction}
-	In this report, we describe our implementation for a Public Health Record (PHR) system. This system is implemented in Python and consists of a client and server. The role of the server is to announce the public parameters and store encrypted data while the client takes care of the encryption and decryption of data.
+	In this report, we describe our prototype implementation for a Public Health Record (PHR) system. This system is implemented in Python and consists of a client and server. The role of the server is to announce the public parameters and store encrypted data while the client takes care of the encryption and decryption of data.
 
 	Our solution is based on a Ciphertext-Policy Attribute-Based Encryption (CP-ABE) scheme and uses no classic access control to authenticate users. Different categories of data can be read and written by different parties or sub parties.
 	
 	First, we introduce the data model, including the categories of data and different parties. Then, we introduce the access policies. The third section will discuss the actual implementation and verifies the the requirements. The last section will discuss our implementation.
 
 \section{Data model}
+	This section defines the categories of data and the parties involved.
 
 	\subsection{Data categories}
 		The system defines the categories below. 
@@ -47,34 +48,81 @@
 		\end{description}
 		
 	\subsection{Parties}
-		The following parties are defined and assumed to work with the system.
+		The following parties are defined and assumed to work with the system. For this prototype, we consider them to be honest.
 		
 		\begin{description}
 			\item[Patient] The subject of the electronic health system. Each health record is associated with one patient and should be under full control of the patient. The patient has full read and write access to every category of data.
 			\item[Doctor] A patient's doctor treats the patient with health issues. The doctor may require read access to any part of a patient's health record. Therefore, the patient may choose to give the doctor read access to his personal information, health data and training data.
-			\item[Insurance] Health insurance companies may want to read a patient's records for fee calculations or health verification. A patient may give insurance companies read access to all of the segments of the his/her health record.
+			\item[Insurance] Health insurance companies may want to read a patient's records for fee calculations or health verification. A patient may give insurance companies read access to (a part of) his record.
 			\item[Employer] Like the insurance company, an employer may need access to an employee's health information and may be granted read access.  
-			\item[Hospital] Hospitals are given read and write access to the health data of the health record. An additional restriction is that a hospital may only write to the health record when a patient has been treated at that hospital.
-			\item[Health club] The health club provides the user with additional health services and training programs. Because this information is relevant to the health record, the health club gets read and write access to the training related segment of a patients health record.
+			\item[Hospital A-C] Hospitals are given read and write access to the health data of the health record. An additional restriction is that a hospital may only write to the health record when a patient has been treated at that hospital.
+			\item[Health club A-C] The health club provides the user with additional health services and training programs. Because this information is relevant to the health record, the health club gets read and write access to the training related segment of a patients health record.
 		\end{description}
 
 \section{Access model}
-	\subsection{Policies}
+	For the CP-ABE scheme, we use the scheme by Waters \cite{waters2011ciphertext}. This scheme is part of the Charm Crypto library. Although this prototype implementation does not have to be efficient, the scheme itself is efficient in terms of encrypt/decrypt computations, cipher text size and, private key size.
+	
+	\subsection{Mappings}\label{sec:mappings}
+		From the assignment description, we derived the following mapping from category to parties.
+		
+		\begin{itemize}
+			\item \textbf{Personal} - Patient, Doctor, Insurance, Employer
+			\item \textbf{Health} - Patient, Hospital
+			\item \textbf{Training} - Patient, Health club
+		\end{itemize}
+		
+		The above mapping will be unfolded to the following attributes per party per category. Figure \ref{fig:mapping} shows the mapping as a diagram.
+		
+		\begin{itemize}
+			\item \textbf{Personal}
+				\subitem \textbf{Patient} - Patient
+				\subitem \textbf{Doctor} - Doctor
+				\subitem \textbf{Insurance} - Insurance
+				\subitem \textbf{Employer} - Employer
+			\item \textbf{Health}
+				\subitem \textbf{Patient} - Patient
+				\subitem \textbf{Hospital-A} - Hospital, A
+				\subitem \textbf{Hospital-B} - Hospital, B
+				\subitem \textbf{Hospital-C} - Hospital, C
+			\item \textbf{Training}
+				\subitem \textbf{Patient} - Patient
+				\subitem \textbf{Health club-A} - Health club, A
+				\subitem \textbf{Health club-B} - Health club, B
+				\subitem \textbf{Health club-C} - Health club, C
+		\end{itemize}
+	
+		\begin{figure}[H]
+	        \centering
+            \includegraphics[width=0.6\columnwidth]{figures/mapping.pdf}
+	     	\caption{Attributes are drawn with dashed borders. Categories with solid borders. One can easily see who has acces to which type of data.}
+			\label{fig:mapping}
+		\end{figure}
 	
 	\subsection{Phases}
-	\todo[inline]{ Volgensmij kan dit wel weg, zie hieronder waar het ookk uitgelegd word..}
-		\subsubsection{Setup}
+		The scheme has the following phases.
 	
-		\subsubsection{Keygen}
+		\begin{description}
+			\item[Setup]
+			The client generates a master key and public key for each category.
+			\item[Keygen]
+			Based on the mappings, for each party for a given category, a secret key will be generated. 
+			\item[Encrypt]
+			Given a message, category and receiving parties, the message will be encrypted with the public key for the given category with the policy based on the parties. The category is added as plain metadata to the cipher text.
+			\item[Decrypt]
+			For a given cipher text, decide which secret key to use based on the associated meta data. Then, decrypt the cipher text.
+		\end{description}
 		
-		\subsubsection{Encrypt}
+		Section \ref{sec:architecture} will provide more details about unfolding the parties to attributes.
 		
-		\subsubsection{Decrypt}
+		In the rest of this document, we often refer to the public key as the write key and the secret key as the read key. This is due to the fact that the public key is send to a party to grant write access.
     
 \section{Implementation}
 	This section describes the practical implementation of the assignment.
 	
-	\subsection{Architecture}
+	\subsection{Used libraries}
+		All software is written in Python. To create web pages, the Django Framework\footnote{\url{https://www.djangoproject.com/}} is used. The CP-ABE encryption is provided by the Charm Crypto\footnote{\url{http://www.charm-crypto.com/}} library by Akinyele, Green and Ruben \cite{cryptoeprint:2011:617}. AES encryption is provided by the Python Cryptographic Toolkit\footnote{\url{https://www.dlitz.net/software/pycrypto/}}. Web pages are rendered with the help of Bootstrap\footnote{\url{http://getbootstrap.com/}}, a front-end framework.
+	
+	\subsection{Architecture}\ref{sec:architecture}
 		The implementation consist of two parts. The first part is a storage server which does nothing more than saving records and providing records. The client part is a web application for all parties, but in a real situation, we assume that each type of party would have access to a own terminal to access PHR's. In fact, if it would be possible to have the server provide a GUI if we could implement CP-ABE in pure JavaScript (so encryption can stay local). Figure \ref{fig:architecture} depicts this architecture.
 		
 		\begin{figure}[H]
@@ -83,21 +131,21 @@
 	     	\caption{Overview of architecture where the patient and several parties exchange data.}
 			\label{fig:architecture}
 		\end{figure}
-		
-		All software is written in Python. To create web pages, the Django Framework\footnote{\url{https://www.djangoproject.com/}} is used. The encryption is provided by the Charm Crypto\footnote{\url{http://www.charm-crypto.com/}} library.
 	
 		When a patient wants to create a PHR, he queries the server for the public system parameters. The system parameters include the categories, the involved parties and the mappings. The mappings describe for which party the client will generate read key with what attributes. For example, a mapping from \texttt{PERSONAL => EMPLOYER, INSURANCE, HOSPITAL+A+B} will result in read keys based on the master key for the category personal data. Employer will receive the attribute \texttt{EMPLOYER} and the Insurance the attribute \texttt{INSURANCE}. Hospital-A and Hospital-B will both get their own attribute \texttt{A} and \texttt{B}, but also the shared attribute \texttt{HOSPITAL}. Keys should be distributed in a secure way, preferably out-of-band (OOB).
 		
-		Encryption is done by specifying the plaintext, the category and the parties. Parties are unfolded to a policy. We use Python tuples and lists to define which parties have access and convert those to policy strings. Some examples (Python to policies):
+		Encryption is done by specifying the plain text, the category and the parties. The actual plain text is encrypted with AES in CBC mode. The key for AES is the hash of a random element of the group where the CP-ABE scheme operates on. This random element is encrypted with the attributes for the receiver and added to the AES cipher text, so the decrypting party can resolve the AES key. To generate a policy for the CP-ABE scheme, the given list of parties is unfolded. We use Python tuples and lists to define which parties have access and convert those to policy strings. Some examples (Python to policies):
 		
 		\begin{itemize}
-			\item \texttt{[INSURANCE, DOCTOR]} $\rightarrow$ \texttt{(INSURANCE or DOCTOR)}
-			\item \texttt{(INSURANCE, DOCTOR)} $\rightarrow$ \texttt{(INSURANCE and DOCTOR)}
-			\item \texttt{[HOSPITAL, DOCTOR]} $\rightarrow$ \texttt{(HOSPITAL and A) or (HOSPITAL and B) or (HOSPITAL and C) or DOCTOR}
+			\item \texttt{[DOCTOR]} $\rightarrow$ \texttt{DOCTOR}
+			\item \texttt{[HOSPITAL-A]} $\rightarrow$ \texttt{(HOSPITAL and A)}
+			\item \texttt{[INSURANCE, DOCTOR]} $\rightarrow$ \texttt{INSURANCE or DOCTOR}
+			\item \texttt{(INSURANCE, DOCTOR)} $\rightarrow$ \texttt{INSURANCE and DOCTOR}
+			\item \texttt{[HOSPITAL, DOCTOR]} $\rightarrow$ \texttt{((HOSPITAL and A) or (HOSPITAL and B) or (HOSPITAL and C)) or DOCTOR}
 			\item \texttt{[(HOSPITAL-A, HOSPITAL-B), INSURANCE]} $\rightarrow$ \texttt{((HOSPITAL and A) and (HOSPITAL and B)) or INSURANCE}
 		\end{itemize}
 		
-		This allows us to build policies much more dynamic and coupled with our protocol. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories not in the system. A cipher text contains a little bit of meta data that can be read without decrypting. This way, a receiving party knows which category the cipher text belongs to and thus which read key(s) to use.
+		Above conversions allow us to build policies much more dynamic and coupled with our protocol. Our implementation validates all categories and parties specified during encryption. This means one cannot specify parties or categories that are not part of the system. A cipher text contains a little bit of meta data that can be read without decrypting. This way, a receiving party knows to which category the cipher text belongs and thus which read key(s) to consider.
 		
 		Sharing a write key is similar to encrypting data. There is only one write key per category and this key is generated during the creation of a PHR. The patient grants another party write access by encrypting the write key with the read key of the party or parties and uploads it to the server. Then, the party who will receive a key, retrieves this key from the server and decrypts it. The write key is added to the key chain. Now, the party can encrypt data.
 		
@@ -106,18 +154,31 @@
 		All relevant parts\footnote{All code not directly related to the Django framework.} of the code is documented and tested. We refer to the source code for an in-depth overview.
 	
 	\subsection{Database model}
-		The role of the database is minimal. This also resulted in a very small database model. The model is flexible, so we are not limited to any number of categories or parties.
+		The role of the database is minimal. This resulted in a very small database model. The model is flexible, so we are not limited to any number of categories or parties.
 		
-		\begin{description}
-			\item[Record table]
-			\textit{ID, Record name} 
-			\item[Record item table]
-			\textit{ID, Record ID, Category, Data} 			
-			\item[Keystore table]
-			\textit{ID, Record ID, Category, Data}
-		\end{description}
+		\textbf{Record}
+		\begin{itemize}
+			\item \textbf{ID} - The record ID.
+			\item \textbf{Name} - Name of the record. Besides identification, not used for other purposes.
+		\end{itemize}
+		
+		\textbf{Record item}
+		\begin{itemize}
+			\item \textbf{ID} - The record item ID.
+			\item \textbf{Record ID} - The ID of the record this record item belongs to.
+			\item \textbf{Category} - Text representation of the category this record item belongs to.
+			\item \textbf{Cipher text} - Actual cipher text.
+		\end{itemize}
+		
+		\textbf{Key}
+		\begin{itemize}
+			\item \textbf{ID} - The record item ID.
+			\item \textbf{Record ID} - The ID of the record this key belongs to.
+			\item \textbf{Category} - Text representation of the category this key belongs to.
+			\item \textbf{Key cipher text} - Actual cipher text containing the key.
+		\end{itemize}
 	
-		Data is saved in Base64 encoded string, representing the cipher text.
+		Cipher text is saved in a Base64 encoded string.
 	
 	\subsection{Verification of requirements}
 		The assignment considers the following requirements:
@@ -155,7 +216,7 @@ BEGIN SECRET READ FOR KEYS INSURANCE
 END SECRET READ KEYS FOR INSURANCE
 			\end{lstlisting}
 		
-			After running this command, all the secret reading keys for all the parties are generated. Each key has a bit of meta data encoded to connect to the right PHR. The mapping (see section XXX) defines who will get initial read access to which category of data. The patient should take care of distributing the keys, preferably via an out-of-band channel.
+			After running this command, all the secret reading keys for all the parties are generated. Each key has a bit of meta data encoded to connect to the right PHR. The mapping (see section \ref{sec:mappings}) defines who will get initial read access to which category of data. The patient should take care of distributing the keys, preferably via an out-of-band channel.
 		
 			A patient can encrypt data for other parties even if the keys have not yet been distributed.
 		
@@ -342,7 +403,7 @@ Hello patient and other hospitals!
 			\end{lstlisting}
 		
 		\subsubsection{A second patient record}\label{sec:usecase_8}
-			A patient is in control of his own PHR and has all the keys to read and write. In this use case, we show that a other patient cannot decrypt a record item that does not belong to him. Because the API to communicate with the server requires the user to specify a record item ID and the record ID, we modified it for this test to only require the record item ID. If we did not do this, the users would not be able to use the command line to request for a record item from a different record.
+			A patient is in control of his own PHR and has all the keys to read and write. In this use case, we show that another patient cannot decrypt a record item that does not belong to him. Because the API requires the user to specify a record item ID and the record ID in order to communicate with the server, we modified it for this use case to only require the record item ID. Without this modification, patient two would not be able to query for record items that are not part of his PHR.
 			
 			First, we create a second patient.
 			
@@ -383,6 +444,18 @@ Cannot decrypt record item
 >>> python manage.py phr_decrypt doctor-patient-two.json 55
 Cannot decrypt record item
 			\end{lstlisting}
+			
+		\subsubsection{Undecryptable data}\label{sec:usecase_9}
+			It is possible to encrypt data for a category with a write key for a party not in the mapping. Consider Hospital-A encrypting for Health Club-A, while Health Club-A has no access to the category Health.
+			
+			\begin{lstlisting}
+>>> python manage.py phr_encrypt hospital-a HEALTH HEALTCLUB-A "Undecryptable, for now..."
+Uploaded to record item ID 59
+>>> python manage.py phr_decrypt patient.json 59
+Cannot decrypt record item
+			\end{lstlisting}
+			
+			As can be seen, even the patient cannot decrypt it anymore, and if the patient cannot read it, no other party can read it. However, the patient could decide to generate a read key for it.
 		
 		\subsubsection{Conclusion}
 			We conclude this section with a table representing which requirement is fulfilled by which use case.
@@ -399,6 +472,7 @@ Cannot decrypt record item
 			    Use case \ref{sec:usecase_6} & ~             & ~             & X             & X             \\ \hline
 			    Use case \ref{sec:usecase_7} & ~             & ~             & X             & X             \\ \hline
 			    Use case \ref{sec:usecase_8} & X             & ~             & ~             & ~             \\ \hline
+			    Use case \ref{sec:usecase_9} & X             & ~             & ~             & ~             \\ \hline
 			    \end{tabular}
 			
 				\caption{Overview of which use cases cover which requirements.}
@@ -407,19 +481,19 @@ Cannot decrypt record item
 \section{Discussion}
 
 	\subsection{Authentication}
-		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the once with the right keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client. The same holds for keys uploaded to the server. One data is sent, you should consider the cipher text compromised.
+		Our implementation does not authenticate a party to the server and visa versa. This does not have any impact on the secrecy of the data, since only the parties with the correct keys, distributed via secure channels, can read or write data. The server cannot learn anything from the data. However, since anyone can upload data to our server, a lot of false and corrupt data may be stored in the database. A client cannot delete data, since the server does not know the client. The same holds for keys uploaded to the server. Once data is sent, you should consider the cipher text compromised.
 		
 		Since authentication is out of the scope of this assignment, we have not implemented a counter measure.
 		
 	\subsection{Number of keys}
 		There are a lot of keys to be generated during the setup and keygen phase. There are $N$ master keys and $N$ public keys for $N$ categories. Based on the mapping, each party having read access gets at least one read key. If the number of parties (and sub parties) grow, the number of read keys grows too.
 		
-		Only the patient has to store all the keys. All other parties should only store their read and write keys.
+		Only the patient has to store all the keys. The key size in the chosen CP-ABE scheme is lineair with the number of attributes. All other parties should only store their read and write keys.
 	
 	\subsection{Key sharing}
-		For each category of data, there is only one master key and one write key. The write key is shared among the parties if they want write access. If a party is malicious, he could impersonate another party or spread the write key. 
+		For each category of data, there is only one master key and one write key. The write key is shared among the parties if they want write access. If a party is malicious, he could impersonate another party or spread the write key. Keys cannot be revoked, unless the patient generates new keys.
 		
-		In the given assignment this is not a problem, since only write access is granted to the hospital and health club, both operating on a different category of data. It would be very easy to trace it back to a malicious party.
+		In the given assignment this is not a problem. First of all, we assume honest parties. Second, only write access is granted to the hospital and health club, both operating on a different category of data. If one would abuse a key, it would be very easy to trace it back to the malicious party.
 
 \section{References}
 	\bibliography{references}

@@ -1,6 +1,6 @@
 from charm.toolbox.pairinggroup import PairingGroup, GT
 from charm.core.engine.util import objectToBytes, bytesToObject
-from charm.schemes.abenc import abenc_waters09
+from charm.schemes.abenc import abenc_waters09, abenc_bsw07
 from charm.core.math.pairing import hashPair
 
 from Crypto.Cipher import AES

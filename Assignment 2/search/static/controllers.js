@@ -269,8 +269,6 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
                 $scope.consultants.push(consultant);
             }
             $scope.consultant = $scope.consultants[0];    
-        }).error(function(data, status, headers, config) {
-            $scope.errordata = data;
         });
 
 
@@ -292,8 +290,8 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
                     $location.path("/login");
                 }
             }).error(function(data, status, headers, config) {
-
-            });
+            	$scope.registerFailed = true;
+        	});
         }
     }
 

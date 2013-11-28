@@ -1,4 +1,8 @@
 <h2>Register</h2>
+<div class="alert alert-danger alert-dismissable" ng-if="registerFailed">
+  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+  Oops! Something went wrong with your registration. Please try a different username.
+</div>
 <form role="form">
 
   <div class="form-group">
@@ -12,6 +16,6 @@
   <div class="form-group">
   <select class="form-control" ng-model="consultant" ng-options="consultant.name for consultant in consultants" name="consultant"></select>
   </div>
-  <button ng-click="register()" class="btn btn-primary btn-lg">Register</button>
+  <button ng-click="register()" ng-disabled="!consultant" class="btn btn-primary btn-lg">Register</button>
 </form>
 

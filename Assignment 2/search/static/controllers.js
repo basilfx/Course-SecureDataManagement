@@ -224,11 +224,11 @@ paySafeControllers.controller('LoginCtrl', ['$scope', '$http', '$location',
 			$scope.successdata = "";
 			$scope.errordata = "";
 			var url = $scope.isConsultant ? "/consultant-login/" : "/client-login/";
-			console.log(CryptoJS.SHA256($scope.user.password));
+			console.log(CryptoJS.SHA3($scope.user.password));
 			$http({
 			    method: 'POST',
 			    url: url,
-			    data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password),
+			    data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password),
 			    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(function(data, status, headers, config) {
 				if(data["login_successful"]==true){
@@ -285,7 +285,7 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
             $http({
                 method: 'POST',
                 url: '/client-register/',
-                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password) + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
+                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password) + "&consultant_id=" + $scope.consultant.id + "&key=" + encrypted_key,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){
@@ -304,7 +304,11 @@ paySafeControllers.controller('ClientRegisterCtrl', ['$scope', '$http', '$locati
 */
 paySafeControllers.controller('LogoutCtrl', ['$scope', '$http', '$location',
     function($scope,$http,$location){
-
+    	global.privateKey = "";
+    	global.clientId = undefined;
+    	global.crypto = undefined;
+    	global.clientName = "";
+    	
         $http({method: 'GET', url: '/logout/'
         }).success(function(data, status, headers, config) {
             $location.path("/login");
@@ -342,7 +346,7 @@ paySafeControllers.controller('ConsultantRegisterCtrl', ['$scope','$http','$loca
 			$http({
                 method: 'POST',
                 url: '/consultant-register/',
-                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA256($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
+                data: "username=" +$scope.user.username + "&password=" + CryptoJS.SHA3($scope.user.password) + "&public_exp=" + $scope.pubExp + "&public_mod=" + $scope.pubMod,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
             }).success(function(data, status, headers, config) {
                 if(data["registered_successful"]==true){

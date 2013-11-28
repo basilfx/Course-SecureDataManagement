@@ -245,7 +245,7 @@ paySafeControllers.controller('LoginCtrl', ['$scope', '$http', '$location',
 					$location.path("/");
 				}
 			}).error(function(data, status, headers, config) {
-				
+				$scope.loginFailed = true;
 			});
 		}
 	}

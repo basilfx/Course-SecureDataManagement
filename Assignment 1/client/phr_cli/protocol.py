@@ -214,7 +214,7 @@ class Protocol(object):
             # For some reason, the decrypt method wants a public key. We don't
             # supply it since it isn't required.
             aes_key_plain = self.scheme.decrypt(None, sk, aes_key_cipher)
-        except Exception, e:
+        except Exception as e:
             # There is a bug in Charm which requires a fix in the scheme to not
             # crash during execution. See for the idea: http://bit.ly/1e19H7A
             if e.args[0] == "Insufficient attributes":

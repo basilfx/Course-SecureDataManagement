@@ -199,7 +199,7 @@ def records_create(request):
 
         #try:
         actions.create(storage, form.cleaned_data["host"], form.cleaned_data["record_name"])
-        #except Exception, e:
+        #except Exception as e:
         #    raise e
 
         storage.save()
@@ -223,7 +223,7 @@ def records_connect(request):
 
         try:
             actions.connect(storage, form.cleaned_data["host"], form.cleaned_data["key_data"])
-        except Exception, e:
+        except Exception as e:
             raise e
 
         storage.save()

@@ -4,11 +4,12 @@
 */*/data/
 */*/media/
 *.py[cod]
+__pycache__
 
 # PIP virtualenv
 sdm/
 
-#databases
+# Databases
 *.sqlite3
 
 # Packages

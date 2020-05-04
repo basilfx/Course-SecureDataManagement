@@ -7,7 +7,7 @@ The steps below have been verified under OSX 10.9 and Ubuntu 13.10 x64. Python 2
 * Clone this repository and navigate to this directory
 * `pip install -r requirements.txt`
 * Install Charm Crypto (see www.charm-crypto.com/Documentation.html)
-* Install DJano JSON RPC (see https://github.com/samuraisam/django-json-rpc)
+* Install Django JSON RPC (see https://github.com/samuraisam/django-json-rpc)
 * Navigate to `client` directory
   * `python manage.py syncdb`
   * `npm -g install bower`

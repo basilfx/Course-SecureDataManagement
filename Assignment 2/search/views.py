@@ -73,7 +73,7 @@ def client_register(request):
     consultant_id = request.POST.get('consultant_id')
     consultant = Consultant.objects.get(id = consultant_id)
     key = request.POST.get('key')
-    print key
+    print(key)
     user = User.objects.create_user(username, None, password)
     user.save()
     client_bucket = user.id - user.id % 3
@@ -88,12 +88,12 @@ def consultant_register(request):
     password = request.POST.get('password')
     public_exp = request.POST.get('public_exp')
     public_mod = request.POST.get('public_mod')
-    print public_mod
+    print(public_mod)
     user = User.objects.create_user(username, None, password)
     user.save()
     consultant = Consultant(user=user,name=username,public_exp=public_exp,public_mod=public_mod)
     consultant.save()
-    print consultant.public_mod
+    print(consultant.public_mod)
 
     return {"registered_successful": True};
 
@@ -181,7 +181,7 @@ def transactions_delete(request):
 def search_amount_date(request):
     amounts = request.GET.get("amount", False)
     dates = request.GET.get("date", False)
-    print amounts
+    print(amounts)
 
     if not amounts and not dates:
         return Http404()

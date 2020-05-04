@@ -1,6 +1,4 @@
-Django==1.6
-django-bootstrap-form==3.0
-django-extensions==1.2.5
-djangular==0.2.2
-six==1.4.1
-wsgiref==0.1.2
+django-bootstrap-form==3.4
+django-extensions==2.2.9
+Django==1.11.28
+djangular==0.2.7

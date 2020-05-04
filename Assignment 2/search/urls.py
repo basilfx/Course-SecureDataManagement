@@ -1,25 +1,27 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
+
+from search import views
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^$', 'search.views.index'),
+urlpatterns = [
+    url(r'^$', views.index, name="search-views-index"),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^logout/$', 'search.views.client_logout'),
-    url(r'^client-login/$', 'search.views.client_login'),
-    url(r'^consultant-login/$', 'search.views.consultant_login'),
-    url(r'^client-register/$', 'search.views.client_register'),
-    url(r'^consultant-register/$', 'search.views.consultant_register'),
+    url(r'^logout/$', views.client_logout),
+    url(r'^client-login/$', views.client_login),
+    url(r'^consultant-login/$', views.consultant_login),
+    url(r'^client-register/$', views.client_register),
+    url(r'^consultant-register/$', views.consultant_register),
 
 
-    url(r'^consultants/$', 'search.views.consultants'),
-    url(r'^clientlist/$', 'search.views.client_list'),
+    url(r'^consultants/$', views.consultants),
+    url(r'^clientlist/$', views.client_list),
 
-    url(r'^transactions/$', 'search.views.transactions'),
-    url(r'^transactions/create/$', 'search.views.transactions_create'),
-    url(r'^transactions/delete/$', 'search.views.transactions_delete'),
+    url(r'^transactions/$', views.transactions),
+    url(r'^transactions/create/$', views.transactions_create),
+    url(r'^transactions/delete/$', views.transactions_delete),
 
-    url(r'^search/$', 'search.views.search_amount_date'),
-)
+    url(r'^search/$', views.search_amount_date),
+]
